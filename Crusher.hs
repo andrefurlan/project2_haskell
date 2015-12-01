@@ -1,3 +1,4 @@
+module Crusher where
 -- CPSC 312 - Project 2
 -- by Khurram Ali Jaffery
 
@@ -152,11 +153,11 @@ heuristic0 = boardEvaluator W [] 3
 --
 -- Returns: a list of String with the new current board consed onto the front
 --
-{-
+
 crusher :: [String] -> Char -> Int -> Int -> [String]
 -- stub
 crusher (current:old) p d n = ["W------------BB-BBB","----W--------BB-BBB","-W-----------BB-BBB"]
--}
+
 --
 -- gameOver
 --
@@ -475,20 +476,3 @@ generateNewStates board history grid slides jumps player = [[W,W,W,D,W,W,D,D,D,D
 -- minimax' :: BoardTree -> (Board -> Bool -> Int) -> Bool -> Int
 -- -- stub
 -- minimax' boardTree heuristic maxPlayer = 4
-
-
-runTests :: Bool
-runTests =
-    testsTrToBoard &&
-    testboardToStr
-
-testboardToStr :: Bool
-testboardToStr =
-    -- test cases
-    boardToStr [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B] == "WWW-WW-------BB-BBB" &&
-    boardToStr [W,W,W,D,W,W,D,D,D,B,D,D,D,B,B,D,B,B,B] == "WWW-WW---B---BB-BBB"
-
-testsTrToBoard :: Bool
-testsTrToBoard =
-    -- test cases
-    sTrToBoard "WWW-WW-------BB-BBB" == [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B]
