@@ -173,11 +173,11 @@ crusher (current:old) p d n = ["W------------BB-BBB","----W--------BB-BBB","-W--
 --
 -- Returns: True if the board is in a state where the game has ended, otherwise False
 --
-{-
+
 gameOver :: Board -> [Board] -> Int -> Bool
 -- stub
 gameOver board history n = False
--}
+
 --
 -- sTrToBoard
 --

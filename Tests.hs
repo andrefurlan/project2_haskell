@@ -1,11 +1,27 @@
+{-# OPTIONS_GHC -F -pgmF htfpp #-}
+
+import Test.Framework
+
 import Crusher
 
+test_t = do assertEqual "WWW-WW-------BB-BBB" (boardToStr [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B])
+            assertEqual "WWW-WW-------BB-BBB" (boardToStr [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B])
+
+test_t2 = do assertEqual "WWW-WW-------BB-BBB" (boardToStr [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B])
+             assertEqual "WWW-WW-------BB-BB" (boardToStr [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B])
+
+{- To run this test using the Haskell Unit Test framework,
+   first compile the code using ghc -o tests Tests.hs
+   and then execute it using tests.exe or .\tests
+
+-}
 runTests :: Bool
 runTests =
     testsTrToBoard &&
     testboardToStr &&
     testcrusher &&
-    testgenerateGrid
+    testgenerateGrid &&
+    testgameOver
 
 testboardToStr :: Bool
 testboardToStr =
@@ -36,3 +52,8 @@ testgenerateGrid =
                 (0,3),(1,3),(2,3),(3,3),
                    (0,4),(1,4),(2,4)]
 
+testgameOver :: Bool
+testgameOver =
+    True == True
+
+main = htfMain htf_thisModulesTests
