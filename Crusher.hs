@@ -102,7 +102,7 @@ type BoardTree = Tree Board
 type Slide = (Point,Point)
 
 --
--- Jump is a tuple of 2 elements
+-- Jump is a tuple of 3 elements
 -- an internal representation of a leap
 -- where the first element represents the point to move from
 -- 		 the second element represents the adjacent point to move over
@@ -245,15 +245,15 @@ boardToStr b = map (\ x -> check x) b
 --
 -- Returns: the corresponding Grid i.e the acc when n3 == -1
 --
-{-
+
 generateGrid :: Int -> Int -> Int -> Grid -> Grid
 generateGrid n1 n2 n3 acc
-	| n3 == -1		= acc
-	| otherwise 	= generateGrid nn1 (n2 - 1) (n3 - 1) (row ++ acc)
-		where
-			row = map (\ x -> (x,n3)) [0 .. (n1 - 1)]
-			nn1 = if n2 > 0 then n1 + 1 else n1 - 1
--}
+    | n3 == -1      = acc
+    | otherwise     = generateGrid nn1 (n2 - 1) (n3 - 1) (row ++ acc)
+        where
+            row = map (\ x -> (x,n3)) [0 .. (n1 - 1)]
+            nn1 = if n2 > 0 then n1 + 1 else n1 - 1
+
 --
 -- generateSlides
 --
@@ -298,11 +298,11 @@ generateSlides b n = [((1,2),(3,4))]
 --
 -- Returns: the list of all Jumps possible on the given grid
 --
-{-
+
 generateLeaps :: Grid -> Int -> [Jump]
 -- stub
 generateLeaps b n = [((1,2),(3,4),(4,5))]
--}
+
 --
 -- stateSearch
 --
