@@ -155,9 +155,23 @@ heuristic0 = boardEvaluator W [] 3
 --
 
 crusher :: [String] -> Char -> Int -> Int -> [String]
--- stub
-crusher (current:old) p d n = ["W------------BB-BBB","----W--------BB-BBB","-W-----------BB-BBB"]
-
+crusher (current:old) p d n =
+    [(boardToStr bestBoard)] ++ (current:old)
+        where
+            grid = (generateGrid 3 2 4 [])
+            bestBoard = stateSearch
+                (sTrToBoard current)
+                (map sTrToBoard old)
+                grid
+                (generateSlides grid n)
+                (generateLeaps grid n)
+                charToPiece
+                d
+                n
+            charToPiece
+                |  p == 'W' = W
+                |  p == 'B' = B
+                | otherwise = D
 --
 -- gameOver
 --
@@ -173,25 +187,18 @@ crusher (current:old) p d n = ["W------------BB-BBB","----W--------BB-BBB","-W--
 --
 -- Returns: True if the board is in a state where the game has ended, otherwise False
 --
-{-
+
 gameOver :: Board -> [Board] -> Int -> Bool
 gameOver board history n
-    | n == 0 = False
-    | otherwise = (isBoardInBoardList board history) || (countPieces (boardToStr board) "W" 0 n) || (countPieces (boardToStr board) "B" 0 n)
+    | n == 0 = True
+    | otherwise =
+        board `elem` history ||
+        (countPieces board W) < n  ||
+        (countPieces board B) < n
 
-isBoardInBoardList :: Board -> [Board] -> Bool
-isBoardInBoardList board history
-    | null history = True
-    | board `elem` history = True
-    | otherwise = False
-
-countPieces :: String -> String -> Int -> Int -> Bool
-countPieces str letter x n
-    | x < n = True
-    | null str = False
-    | (head str) == letter = countW((tail str) (x + 1) n)
-    | otherwise = countW((tail str) x n)
--}
+countPieces :: Board -> Piece -> Int
+countPieces board player =
+    foldl (\acc x -> if x == player then acc + 1 else acc) 0 board
 
 -- sTrToBoard
 --
@@ -251,11 +258,11 @@ boardToStr b = map (\ x -> check x) b
 --		   initialized to []
 --
 -- Note: This function on being passed 3 2 4 [] would produce
---		 [(0,0),(1,0),(2,0)
---		  (0,1),(1,1),(2,1),(3,1)
---		  (0,2),(1,2),(2,2),(3,2),(4,2)
---		  (0,3),(1,3),(2,3),(3,3)
---		  (0,4),(1,4),(2,4)]
+--		 [   (0,0),(1,0),(2,0)
+--		     (0,1),(1,1),(2,1),(3,1)
+--	         (0,2),(1,2),(2,2),(3,2),(4,2)
+--		     (0,3),(1,3),(2,3),(3,3)
+--		     (0,4),(1,4),(2,4)]
 --
 -- Returns: the corresponding Grid i.e the acc when n3 == -1
 --
@@ -527,11 +534,11 @@ leapDiagonalDownRight x n = (top, mid , bottomright)
 -- Returns: the current board if game is over,
 --          otherwise produces the next best board
 --
-{-
+
 stateSearch :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> Board
 -- stub
-stateSearch board history grid slides jumps player depth num = [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B]
--}
+stateSearch board history grid slides jumps player depth num = [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,B,B,B,B]
+
 --
 -- generateTree
 --
@@ -786,3 +793,12 @@ lost player board myTurn = not False
 -- minimax' :: BoardTree -> (Board -> Bool -> Int) -> Bool -> Int
 -- -- stub
 -- minimax' boardTree heuristic maxPlayer = 4
+
+
+play :: [String] -> Char -> Int -> Int -> IO ()
+play history@(current:old) player depth n
+  | gameOver (sTrToBoard current) (map sTrToBoard old) n = putStrLn "Game over."
+  | otherwise = do
+       let history'@(new:_) = crusher history player depth n
+       putStrLn $ player:" played: " ++ new
+       play history' (if player == 'W' then 'B' else 'W') depth n
