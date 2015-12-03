@@ -8,13 +8,12 @@ import Crusher
     runTestTT tests
 -}
 
-test1 = TestCase (
-    assertEqual
-        "aaa" -- annotation
-        (boardToStr [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B]) -- function call
-        "WWW-WW-------BB-BBB") -- expected output
+
+tests = TestList [TestLabel "gameOver" gameOver_tests]
 
 
+-- Game Over tests
+gameOver_tests = TestList [test_samemove1, test_samemove2, test_fewW1, test_fewW2, test_fewW3]
 test_samemove1 = TestCase (
     assertEqual
         "Board present in list"
@@ -60,5 +59,102 @@ test_fewW3 = TestCase (
             3)
         False)
 
-gameOver_tests = TestList [test_samemove1, test_samemove2, test_fewW1, test_fewW2, test_fewW3]
-tests = TestList [TestLabel "gameOver" gameOver_tests]
+-- Board Evaluator tests
+boardEvaluator_tests = TestList []
+test_boardeval1 = TestCase (
+    assertEqual
+        "can eat"
+        (boardEvaluator
+            B
+            3
+            [  W,W,D,
+              D,B,D,D,
+             D,D,B,D,D,
+              B,D,D,D,
+               D,D,D]
+            True)
+        5)
+
+test_boardeval2 = TestCase (
+    assertEqual
+        "Win value"
+        (boardEvaluator
+            W
+            3
+            [  W,W,D,
+              D,B,D,D,
+             D,D,B,D,D,
+              B,D,D,D,
+               D,D,D]
+            True)
+        -1)
+
+test_boardeval3 = TestCase (
+    assertEqual
+        "Win value"
+        (boardEvaluator
+            B
+            3
+            [  B,W,D,
+              D,B,D,D,
+             D,D,D,D,D,
+              B,D,D,D,
+               D,D,D]
+            True)
+        -1)
+
+test_boardeval3 = TestCase (
+    assertEqual
+        "Win value"
+        (boardEvaluator
+            B
+            3
+            [  W,W,W,
+              D,W,W,D,
+             D,D,D,D,D,
+              D,B,B,D,
+               B,B,B]
+            True)
+        0)
+
+test_boardeval3 = TestCase (
+    assertEqual
+        "Win value"
+        (boardEvaluator
+            W
+            3
+            [  W,W,W,
+              D,W,W,D,
+             D,D,D,D,D,
+              D,B,B,D,
+               B,B,B]
+            True)
+        0)
+
+test_boardeval3 = TestCase (
+    assertEqual
+        "Win value"
+        (boardEvaluator
+            W
+            3
+            [  W,W,W,
+              D,W,W,D,
+             D,D,D,D,D,
+              D,B,B,D,
+               B,B,B]
+            True)
+        0)
+
+test_boardeval3 = TestCase (
+    assertEqual
+        "Win value"
+        (boardEvaluator
+            W
+            3
+            [  D,W,W,
+              D,W,W,D,
+             D,D,W,D,D,
+              D,B,B,D,
+               B,B,B]
+            True)
+        0)

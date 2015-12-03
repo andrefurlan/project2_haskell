@@ -428,9 +428,29 @@ generateNewStates board history grid slides jumps player = [[W,W,W,D,W,W,D,D,D,D
 -- Returns: the goodness value of the provided board
 --
 
--- boardEvaluator :: Piece -> [Board] -> Int -> Board -> Bool -> Int
--- -- stub
--- boardEvaluator player history n board myTurn = 3
+-- Heuristic used:
+-- If won the board, 100
+-- If lost the board, -100
+-- if can crunch opponent, n*25
+-- if can be crunshed by opponent, n*-25
+-- # leaps, n*10
+-- # slides, n*1
+
+boardEvaluator :: Piece -> [Boards] -> Int -> Board -> Bool -> Int
+boardEvaluator player history n board myTurn =
+    | won Piece Board myTurn            = 100
+    | lost Piece Board myTurn           = -100
+    | otherwise
+        (crunchCount * 25) +
+        (crunchedCount * -25) +
+        (leapCount * 10) +
+        (slideCount * 1)
+            where
+                crunchCount = 1
+                crunchedCount = 0
+                leapCount = 2
+                slideCount = 5
+
 
 --
 -- minimax
