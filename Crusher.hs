@@ -65,7 +65,7 @@ type State = [Tile]
 -- the tree generating function, allowing it to correctly generate new children
 --
 -- Next consists of 4 elements
--- where usedDepth is an integer reprsenting the current depth level
+-- where usedDepth is an integer representing the current depth level
 --		 newBoard is the next board to add to the tree
 -- 		 seenBoards is the updated history to avoid possible future trouble boards
 -- 		 cplayer is the current player for whom the board was generated for
@@ -155,22 +155,22 @@ heuristic0 = boardEvaluator W [] 3
 --
 
 crusher :: [String] -> Char -> Int -> Int -> [String]
-crusher (current:old) p d n =
+crusher (current:old) player d size =
     [(boardToStr bestBoard)] ++ (current:old)
         where
-            grid = (generateGrid 3 2 4 [])
+            grid = (generateGrid size (size - 1) (2 * (size - 1)) [])
             bestBoard = stateSearch
                 (sTrToBoard current)
                 (map sTrToBoard old)
                 grid
-                (generateSlides grid n)
-                (generateLeaps grid n)
+                (generateSlides grid size)
+                (generateLeaps grid size)
                 charToPiece
                 d
-                n
+                size
             charToPiece
-                |  p == 'W' = W
-                |  p == 'B' = B
+                |  player == 'W' = W
+                |  player == 'B' = B
                 | otherwise = D
 --
 -- gameOver
@@ -564,7 +564,13 @@ stateSearch board history grid slides jumps player depth size
 --
 
 generateTree :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> BoardTree
-generateTree board history grid slides jumps player depth n = Node n board []
+-- stub
+generateTree board history grid slides jumps player depth n =
+    Node n board [
+        Node n [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B] [],
+        Node n [W,W,W,D,W,D,D,D,D,W,D,D,D,B,B,D,B,B,B] [],
+        Node n [W,W,W,D,W,D,D,D,D,W,D,D,B,B,B,D,D,B,B] [],
+        Node n [W,W,D,D,W,W,D,D,D,W,D,D,B,B,B,D,D,B,B] []]
 
 --
 -- generateNewStates
@@ -771,13 +777,15 @@ lost player board myTurn = not False
 minimax :: BoardTree -> (Board -> Bool -> Int) -> Board
 minimax (Node _ b children) heuristic = [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B]
 
---
+-- minimize opponent's move and maximize my moves
+-- calculate the goodness value at each leaf node
+
 -- minimax'
 --
 -- This function is a helper to the actual minimax function, it consumes
 -- a search tree, an appropriate heuristic to apply to the leaf nodes of
 -- the tree, and based on whether it would have been the maximizing
--- player's turn, it accordingly propogates the values upwards until
+-- player's turn, it accordingly propagates the values upwards until
 -- it reaches the top to the base node, and produces that value.
 --
 -- Arguments:
@@ -803,3 +811,25 @@ play history@(current:old) player depth n
        let history'@(new:_) = crusher history player depth n
        putStrLn $ player:" played: " ++ new
        play history' (if player == 'W' then 'B' else 'W') depth n
+
+myminimax :: BoardTree -> [Int]
+myminimax (Node _ board children)
+    | null children = [boardEvaluator board]
+    | otherwise  = myminimaxhelper children
+
+myminimaxhelper :: [Tree Board] -> [Int]
+myminimaxhelper (node:rest)
+    | null rest = myminimax node
+    | otherwise = (myminimax node) ++ (myminimaxhelper rest)
+
+
+mytree = Node 3 [W,W] [
+            Node 3 [W,B] [
+                Node 3 [B,W,W,D] [],
+                Node 3 [W,B,B,D] [
+                    Node 3 [B,B,B,B] [],
+                    Node 3 [W,W,W,W] []
+                ]],
+            Node 3 [W,W,W,D] [],
+            Node 3 [W,W,W,D] [],
+            Node 3 [W,W,D,D] []]
