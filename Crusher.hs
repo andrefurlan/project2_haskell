@@ -536,9 +536,12 @@ leapDiagonalDownRight x n = (top, mid , bottomright)
 --
 
 stateSearch :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> Board
--- stub
-stateSearch board history grid slides jumps player depth num = [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,B,B,B,B]
-
+stateSearch board history grid slides jumps player depth size
+    | (gameOver board history size) = board
+    | otherwise = minimax tree heuristic
+        where
+            tree = generateTree board history grid slides jumps player depth size
+            heuristic = boardEvaluator player history size
 --
 -- generateTree
 --
@@ -560,9 +563,8 @@ stateSearch board history grid slides jumps player depth num = [W,W,W,D,W,W,D,D,
 -- Returns: the corresponding BoardTree generated till specified depth
 --
 
--- generateTree :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> BoardTree
--- no idea of how to create a board tree
---generateTree board history grid slides jumps player depth n =
+generateTree :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> BoardTree
+generateTree board history grid slides jumps player depth n = Node n board []
 
 --
 -- generateNewStates
@@ -730,6 +732,7 @@ filterSlideEndingTiles x t p
 -- # slides, n*1
 
 boardEvaluator :: Piece -> [Board] -> Int -> Board -> Bool -> Int
+-- TODO
 boardEvaluator player history n board myTurn
     | won player board myTurn   = 100
     | lost player board myTurn  = -100
@@ -758,16 +761,15 @@ lost player board myTurn = not False
 --
 -- Arguments:
 -- -- (Node _ b children): a BoardTree to apply minimax algorithm on
--- -- heuristic: a paritally evaluated boardEvaluator representing the
+-- -- heuristic: a partially evaluated boardEvaluator representing the
 --				 appropriate heuristic to apply based on the size of the board,
 --				 who the program is playing as, and all the boards already seen
 --
 -- Returns: the next best board
 --
 
--- minimax :: BoardTree -> (Board -> Bool -> Int) -> Board
--- -- stub
--- minimax (Node _ b children) heuristic = [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B]
+minimax :: BoardTree -> (Board -> Bool -> Int) -> Board
+minimax (Node _ b children) heuristic = [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B]
 
 --
 -- minimax'
@@ -781,7 +783,7 @@ lost player board myTurn = not False
 -- Arguments:
 -- -- (Node _ b []): a BoardTree
 -- -- (Node _ b children): a BoardTree
--- -- heuristic: a paritally evaluated boardEvaluator representing the
+-- -- heuristic: a partially evaluated boardEvaluator representing the
 --				 appropriate heuristic to apply based on the size of the board,
 --				 who the program is playing as, and all the boards already seen
 -- -- maxPlayer: a Boolean indicating whether the function should be maximizing
@@ -790,9 +792,8 @@ lost player board myTurn = not False
 -- Returns: the minimax value at the top of the tree
 --
 
--- minimax' :: BoardTree -> (Board -> Bool -> Int) -> Bool -> Int
--- -- stub
--- minimax' boardTree heuristic maxPlayer = 4
+minimax' :: BoardTree -> (Board -> Bool -> Int) -> Bool -> Int
+minimax' boardTree heuristic maxPlayer = 4
 
 
 play :: [String] -> Char -> Int -> Int -> IO ()
