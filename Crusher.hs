@@ -565,33 +565,22 @@ stateSearch board history grid slides jumps player depth size
 
 generateTree :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> BoardTree
 generateTree board history grid slides jumps player depth n
-    | (depth == 0) = (Node depth board [])
-    | otherwise = (Node depth board (genTree nextStates history grid slides jumps player (depth - 1) n))
-            where nextStates = (generateNewStates board history grid slides jumps player)
+    | depth == 0    = (Node depth board [])
+    | otherwise     = (Node depth board children)
+            where
+                nextStates = generateNewStates board history grid slides jumps player
+                children = generateTreeHelper nextStates history grid slides jumps player (depth - 1) n
 
-genTree :: [Board] -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> [Tree Board]
-genTree brds history grid slides jumps player depth n
-    | null brds = []
-    | (depth == 0) = (Node depth (head brds) (statesToTrees [] depth)) : (genTree (tail brds) history grid slides jumps player depth n)
-    | otherwise = (Node depth (head brds) nextLevelBrds ) : (genTree (tail brds) history grid slides jumps player (depth - 1) n)
-        where nextStates = (generateNewStates (head brds) history grid slides jumps nextPlayer)
-              nextLevelBrds = (statesToTrees nextStates (depth - 1))
-              nextPlayer = rotatePlayer player
 
-rotatePlayer :: Piece -> Piece
-rotatePlayer x
-    | x == W = B
-    | otherwise = W
+generateTreeHelper :: [Board] -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> [Tree Board]
+generateTreeHelper brds history grid slides jumps player depth n
+    | null brds     = []
+    | otherwise     = (newHead:newTail)
+        where
+            newHead = generateTree (head brds) history grid slides jumps otherPlayer depth n
+            newTail = generateTreeHelper (tail brds) history grid slides jumps player depth n
+            otherPlayer = if player == W then B else W
 
-statesToTrees :: [Board] -> Int -> [Tree Board]
-statesToTrees brds depth
-    | null brds = []
-    | otherwise = (makeTree (head brds) depth) : (statesToTrees (tail brds) depth)
-
-makeTree :: Board -> Int -> BoardTree
-makeTree brd depth = (Node depth brd [])
-
---
 -- generateNewStates
 --
 -- This function consumes the arguments described below, it first generates a
