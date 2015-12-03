@@ -174,8 +174,22 @@ crusher (current:old) p d n = ["W------------BB-BBB","----W--------BB-BBB","-W--
 --
 {-
 gameOver :: Board -> [Board] -> Int -> Bool
--- stub
-gameOver board history n = False
+gameOver board history n
+    | n == 0 = False
+    | otherwise = (isBoardInBoardList board history) || (countPieces (boardToStr board) "W" 0 n) || (countPieces (boardToStr board) "B" 0 n)
+
+isBoardInBoardList :: Board -> [Board] -> Bool
+isBoardInBoardList board history
+    | null history = True
+    | board `elem` history = True
+    | otherwise = False
+
+countPieces :: String -> String -> Int -> Int -> Bool
+countPieces str letter x n
+    | x < n = True
+    | null str = False
+    | (head str) == letter = countW((tail str) (x + 1) n)
+    | otherwise countW((tail str) x n)
 -}
 --
 -- sTrToBoard
@@ -272,11 +286,132 @@ generateGrid n1 n2 n3 acc
 --
 -- Returns: the list of all Slides possible on the given grid
 --
-{-
 generateSlides :: Grid -> Int -> [Slide]
--- stub
-generateSlides b n = [((1,2),(3,4))]
--}
+generateSlides b n = (removeDuplicateSlides (removeInvalidSlides (generateSlideHelper b n)))
+
+-- generate unfiltered list of slides
+generateSlideHelper :: Grid -> Int -> [Slide]
+generateSlideHelper b n
+    | n == 0 = []
+    | null b = []
+    | otherwise = (removeDuplicateSlides (removeInvalidSlides slides)) ++ (generateSlides (tail b) n)
+                where sl = (slideLeft (head b) n)
+                      sr = (slideRight (head b) n)
+                      sul = (slideUpLeft (head b) n)
+                      sdr = (slideDownRight (head b) n)
+                      sur = (slideUpRight (head b)n )
+                      sdl = (slideDownLeft (head b) n)
+                      slides = [sl,sr,sul,sdr,sur,sdl]
+
+removeInvalidSlides :: [Slide] -> [Slide]
+removeInvalidSlides x
+    | null x = []
+    | (fst (head x)) == (snd (head x)) = removeInvalidSlides (tail x)
+    | otherwise = head x : removeInvalidSlides (tail x)
+
+removeDuplicateSlides :: [Slide] -> [Slide]
+removeDuplicateSlides x
+    | null x = []
+    | head x `elem` tail x = removeDuplicateSlides (tail x)
+    | otherwise = head x : removeDuplicateSlides (tail x)
+
+
+slideLeft :: Point -> Int -> Slide
+slideLeft x n
+    | ((fst x) - 1) > -1 = (x, (((fst x) - 1), (snd x)))
+    | otherwise = (x,x)
+
+slideRight :: Point -> Int -> Slide
+slideRight x n
+    | (snd x) > (n - 1) = (slideRightBottom x n)
+    | (snd x) <= (n - 1) = (slideRightTop x n)
+    | otherwise = (x,x)
+
+-- Helper for bottom half of hex for slideRight
+slideRightBottom :: Point -> Int -> Slide
+slideRightBottom x n
+    | not((fst x) == n) && not(((snd x) == (n + 1)) && ((fst x) == (n - 1))) = (x, (((fst x) + 1), (snd x)))
+    | otherwise = (x,x)
+
+-- Helper for top half of hex for slideRight
+slideRightTop :: Point -> Int -> Slide
+slideRightTop x n
+    | (((fst x) - (snd x)) /= 2) = (x, (((fst x) + 1), (snd x)))
+    | otherwise = (x,x)
+
+slideUpLeft :: Point -> Int -> Slide
+slideUpLeft x n
+    | (snd x) >= n = (bottomUpLeft x n)
+    | (snd x) < n = (topUpLeft x n)
+    | otherwise = (x,x)
+
+-- Helper for bottom half of hex for slideUpLeft
+bottomUpLeft :: Point -> Int -> Slide
+bottomUpLeft x n
+    | (((snd x) - 1) >= (n - 1)) = (x, ((fst x), ((snd x) - 1)))
+    | otherwise = (x,x)
+
+-- Helper for top half of hex for slideUpLeft
+topUpLeft :: Point -> Int -> Slide
+topUpLeft x n
+    | not((fst x) == 0) && ((((snd x) - 1) >= 0)) = (x, (((fst x) - 1), ((snd x) - 1)))
+    | otherwise = (x,x)
+
+slideUpRight :: Point -> Int -> Slide
+slideUpRight x n
+    | (snd x) >= n = (bottomUpRight x n)
+    | (snd x) < n = (topUpRight x n)
+    | otherwise = (x,x)
+
+-- Helper for bottom half of hex for slideUpRight
+bottomUpRight :: Point -> Int -> Slide
+bottomUpRight x n
+    | (((fst x) + 1) <= (n + 1)) && (((snd x) - 1) >= (n - 2)) = (x, (((fst x) + 1), ((snd x) - 1)))
+    | otherwise = (x,x)
+
+-- Helper for top half of hex for slideUpRight
+topUpRight :: Point -> Int -> Slide
+topUpRight x n
+    | (((fst x) - (snd x)) /= (n - 1)) && (((snd x) - 1) >= 0) = (x, ((fst x),((snd x) - 1)))
+    | otherwise = (x,x)
+
+slideDownRight :: Point -> Int -> Slide
+slideDownRight x n
+    | (snd x) >= n - 1 = (bottomDownRight x n)
+    | (snd x) < n - 1 = (topDownRight x n)
+    | otherwise = (x,x)
+
+-- Helper for bottom half of hex for slideDownRight
+bottomDownRight :: Point -> Int -> Slide
+bottomDownRight x n
+    | ((((snd x) + 1) <= (n + 1)) && not(((fst x) == n) && ((snd x) == n)) && ((fst x) /= (n + 1)))= (x, ((fst x), ((snd x) + 1)))
+    | otherwise = (x,x)
+
+-- Helper for top half of hex for slideDownRight
+topDownRight :: Point -> Int -> Slide
+topDownRight x n
+    | (((fst x) + 1) <= (n + 1)) = (x, (((fst x) + 1), ((snd x) + 1)))
+    | otherwise = (x,x)
+
+slideDownLeft :: Point -> Int -> Slide
+slideDownLeft x n
+    | (snd x) >= (n - 1) = (bottomDownLeft x n)
+    | (snd x) < (n - 1) = (topDownLeft x n)
+    | otherwise = (x,x)
+
+-- Helper for bottom half of hex for slideDownLeft
+bottomDownLeft :: Point -> Int -> Slide
+bottomDownLeft x n
+    | ((fst x) /= 0) && (((snd x) + 1) <= (n + 1)) = (x, (((fst x) - 1), ((snd x) + 1)))
+    | otherwise = (x,x)
+
+-- Helper for top half of hex for slideDownLeft
+topDownLeft :: Point -> Int -> Slide
+topDownLeft x n
+    | (((snd x) + 1) <= n) =  (x, ((fst x), ((snd x) + 1)))
+    | otherwise = (x,x)
+
+
 --
 -- generateLeaps
 --
@@ -297,11 +432,78 @@ generateSlides b n = [((1,2),(3,4))]
 --
 -- Returns: the list of all Jumps possible on the given grid
 --
-{-
+
 generateLeaps :: Grid -> Int -> [Jump]
--- stub
-generateLeaps b n = [((1,2),(3,4),(4,5))]
--}
+generateLeaps b n = (removeInvalidJumps (generateLeapsHelper b n))
+
+-- generate unfiltered list of Jumps
+generateLeapsHelper :: Grid -> Int -> [Jump]
+generateLeapsHelper b n
+    | n == 0 = []
+    | null b = []
+    | otherwise = leaps ++ (generateLeaps (tail b) n)
+                where ll = (leapLeft (head b) n)
+                      lr = (leapRight (head b) n)
+                      ldul = (leapDiagonalUpLeft (head b) n)
+                      ldur = (leapDiagonalUpRight (head b) n)
+                      lddl = (leapDiagonalDownLeft (head b) n)
+                      lddr = (leapDiagonalDownRight (head b) n)
+                      leaps = [ll,lr,ldul,ldur,lddl,lddr]
+
+
+removeInvalidJumps :: [Jump] -> [Jump]
+removeInvalidJumps x
+    | null x = []
+    | ((getFirst (head x)) == (getThird (head x))) || ((getFirst (head x)) == (getSecond (head x))) || ((getSecond (head x)) == (getThird (head x))) = removeInvalidJumps (tail x)
+    | otherwise = (head x) : removeInvalidJumps (tail x)
+
+-- Helpers to grab value from a triple
+getThird :: Jump -> Point
+getThird (_, _, x) = x
+
+getSecond :: Jump -> Point
+getSecond (_, x, _) = x
+
+getFirst :: Jump -> Point
+getFirst (x, _, _) = x
+
+-- Leaps
+leapLeft :: Point -> Int -> Jump
+leapLeft x n = (right, mid, left)
+     where  right = (fst (slideLeft x n))
+            mid = (snd (slideLeft x n))
+            left = (snd (slideLeft mid n))
+
+leapRight :: Point -> Int -> Jump
+leapRight x n = (left, mid, right)
+    where   left = (fst (slideRight x n))
+            mid = (snd (slideRight x n))
+            right = (snd (slideRight mid n))
+
+leapDiagonalUpLeft :: Point -> Int -> Jump
+leapDiagonalUpLeft x n = (bottom, mid, topleft)
+    where   bottom = (fst (slideUpLeft x n))
+            mid = (snd (slideUpLeft x n))
+            topleft = (snd (slideUpLeft mid n))
+
+leapDiagonalUpRight :: Point -> Int -> Jump
+leapDiagonalUpRight x n = (bottom, mid, topright)
+    where   bottom = (fst (slideUpRight x n))
+            mid = (snd (slideUpRight x n))
+            topright = (snd (slideUpRight mid n))
+
+leapDiagonalDownLeft :: Point -> Int -> Jump
+leapDiagonalDownLeft x n = (top, mid , bottomleft)
+    where   top = (fst (slideDownLeft x n))
+            mid = (snd (slideDownLeft x n))
+            bottomleft = (snd (slideDownLeft mid n))
+
+leapDiagonalDownRight :: Point -> Int -> Jump
+leapDiagonalDownRight x n = (top, mid , bottomright)
+    where   top = (fst (slideDownRight x n))
+            mid = (snd (slideDownRight x n))
+            bottomright = (snd (slideDownRight mid n))
+
 --
 -- stateSearch
 --
@@ -404,9 +606,66 @@ generateNewStates board history grid slides jumps player = [[W,W,W,D,W,W,D,D,D,D
 -- Returns: the list of all valid moves that the player could make
 --
 
--- moveGenerator :: State -> [Slide] -> [Jump] -> Piece -> [Move]
--- -- stub
--- moveGenerator state slides jumps player = ((1,2),(3,4))
+moveGenerator :: State -> [Slide] -> [Jump] -> Piece -> [Move]
+moveGenerator state slides jumps player =
+    (validJumps jumps state player) ++ (validSlides slides state player)
+
+-- Generate a list of all valid Jumps from state of the board
+validJumps :: [Jump] -> [Tile] -> Piece -> [Move]
+validJumps x t player
+    | null x = []
+    | ((getFirst (head x)) `elem` startingPoint) &&
+      ((getSecond (head x)) `elem` middlePoint) &&
+      ((getThird (head x)) `elem` endingPoint) =
+        ((getFirst (head x)), (getThird (head x))) : validJumps (tail x) t player
+    | otherwise = validJumps (tail x) t player
+        where startingPoint = filterJumpStartingTiles (head x) t player
+              middlePoint = filterJumpMiddleTiles (head x) t player
+              endingPoint = filterJumpEndingTiles (head x) t player
+
+filterJumpStartingTiles :: Jump -> [Tile] -> Piece -> [Point]
+filterJumpStartingTiles x t player
+    | null t = []
+    | ((getFirst x) == (snd (head t))) && ((fst (head t)) == player) = (snd (head t)) : filterJumpStartingTiles x (tail t) player
+    | otherwise = filterJumpStartingTiles x (tail t) player
+
+filterJumpMiddleTiles :: Jump -> [Tile] -> Piece -> [Point]
+filterJumpMiddleTiles x t player
+    | null t = []
+    | ((getSecond x) == (snd (head t))) && ((fst (head t)) == player) = (snd (head t)) : filterJumpMiddleTiles x (tail t) player
+    | otherwise = filterJumpMiddleTiles x (tail t) player
+
+filterJumpEndingTiles :: Jump -> [Tile] -> Piece -> [Point]
+filterJumpEndingTiles x t player
+    | null t = []
+    | ((getThird x) == (snd (head t))) && ((fst (head t)) /= player) = (snd (head t)) : filterJumpEndingTiles x (tail t) player
+    | otherwise = filterJumpEndingTiles x (tail t) player
+
+-- Generate a list of all valid slides from the state of the board
+validSlides :: [Slide] -> [Tile] -> Piece -> [Move]
+validSlides x t player
+    | null x = []
+    | ((fst (head x)) `elem` startingPoint) &&
+      ((snd (head x)) `elem` endingPoint) =
+        (head x) : validSlides (tail x) t player
+    | otherwise = validSlides (tail x) t player
+        where startingPoint = filterSlideStartingTiles (head x) t player
+              endingPoint = filterSlideEndingTiles (head x) t player
+
+-- All the points that have a player piece
+filterSlideStartingTiles :: Slide -> [Tile] -> Piece -> [Point]
+filterSlideStartingTiles x t player
+    | null t = []
+    | ((fst x) == (snd (head t))) && ((fst (head t)) == player) = (snd (head t)) : filterSlideStartingTiles x (tail t) player
+    | otherwise = filterSlideStartingTiles x (tail t) player
+
+-- All the points that have a empty spot piece
+filterSlideEndingTiles :: Slide -> [Tile] -> Piece -> [Point]
+filterSlideEndingTiles x t p
+    | null t = []
+    | ((snd x) == (snd (head t))) && (((fst (head t))) == D) = (snd (head t)) : filterSlideEndingTiles x (tail t) p
+    | otherwise = filterSlideEndingTiles x (tail t) p
+
 
 --
 -- boardEvaluator
