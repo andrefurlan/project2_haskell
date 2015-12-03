@@ -9,7 +9,51 @@ import Crusher
 -}
 
 
-tests = TestList [TestLabel "gameOver" gameOver_tests]
+tests = TestList [TestLabel "gameOver" gameOver_tests, TestLabel "generateNewStates" generateNewState_tests]
+
+
+-- Generate States test
+generateNewState_tests = TestList [test_genState1]
+
+hist :: [Board]
+hist = [[W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B],
+        [W,W,W,D,W,D,D,D,D,W,D,D,D,B,B,D,B,B,B],
+        [W,W,W,D,W,D,D,D,D,W,D,D,B,B,B,D,D,B,B],
+        [W,W,D,D,W,W,D,D,D,W,D,D,B,B,B,D,D,B,B],
+        [W,W,D,D,W,W,D,D,D,B,D,D,B,D,B,D,D,B,B],
+        [W,W,D,D,W,D,D,D,D,W,D,D,B,D,B,D,D,B,B],
+        [W,W,D,D,W,D,D,D,D,B,D,D,B,D,B,D,D,B,D],
+        [W,W,D,D,D,D,D,D,D,W,D,D,B,D,B,D,D,B,D],
+        [W,W,D,D,D,D,D,D,D,W,D,D,B,B,B,D,D,D,D],
+        [W,W,D,D,W,D,D,D,D,D,D,D,B,B,B,D,D,D,D],
+        [W,W,D,D,W,D,D,D,D,B,D,D,B,D,B,D,D,D,D]]
+
+cB :: Board
+cB = [W,W,D,D,W,D,D,D,D,B,D,D,B,D,B,D,D,D,D]
+
+gr :: Grid
+gr = [(0,0),(1,0),(2,0),(0,1),(1,1),(2,1),(3,1),(0,2),(1,2),(2,2),(3,2),(4,2),(0,3),(1,3),(2,3),(3,3),(0,4),(1,4),(2,4)]
+
+jm :: [Jump]
+jm = generateLeaps gr 3
+
+sld :: [Slide]
+sld = generateSlides gr 3
+
+genState1 = TestCase (
+    assertEqual
+      "List of all possible new states"
+      (generateNewStates cB hist gr sld jm W)
+      [[D,W,W,D,W,D,D,D,D,B,D,D,B,D,B,D,D,D,D],
+       [D,W,D,D,W,D,D,D,D,W,D,D,B,D,B,D,D,D,D],
+       [W,D,D,D,W,D,D,D,W,B,D,D,B,D,B,D,D,D,D],
+       [D,W,D,W,W,D,D,D,D,B,D,D,B,D,B,D,D,D,D],
+       [W,D,W,D,W,D,D,D,D,B,D,D,B,D,B,D,D,D,D],
+       [W,D,D,D,W,W,D,D,D,B,D,D,B,D,B,D,D,D,D],
+       [W,W,D,W,D,D,D,D,D,B,D,D,B,D,B,D,D,D,D],
+       [W,W,D,D,D,W,D,D,D,B,D,D,B,D,B,D,D,D,D],
+       [W,W,D,D,D,D,D,D,W,B,D,D,B,D,B,D,D,D,D]]
+  )
 
 
 -- Game Over tests
