@@ -564,13 +564,25 @@ stateSearch board history grid slides jumps player depth size
 --
 
 generateTree :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> BoardTree
--- stub
 generateTree board history grid slides jumps player depth n =
-    Node n board [
-        Node n [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B] [],
-        Node n [W,W,W,D,W,D,D,D,D,W,D,D,D,B,B,D,B,B,B] [],
-        Node n [W,W,W,D,W,D,D,D,D,W,D,D,B,B,B,D,D,B,B] [],
-        Node n [W,W,D,D,W,W,D,D,D,W,D,D,B,B,B,D,D,B,B] []]
+        (Node depth board (genTree [board] history grid slides jumps player depth n))
+
+
+genTree :: [Board] -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> [Tree Board]
+genTree brds history grid slides jumps player depth n
+    | null brds = []
+    | (depth == 0) = (Node depth (head brds) (statesToTrees [] depth)) : (genTree (tail brds) history grid slides jumps player depth n)
+    | otherwise = (Node depth (head brds) nextLevelBrds ) : (genTree (tail brds) history grid slides jumps player (depth - 1) n)
+        where nextStates = (generateNewStates (head brds) history grid slides jumps player)
+              nextLevelBrds = (statesToTrees nextStates (depth - 1))
+
+statesToTrees :: [Board] -> Int -> [Tree Board]
+statesToTrees brds depth
+    | null brds = []
+    | otherwise = (makeTree (head brds) depth) : (statesToTrees (tail brds) depth)
+
+makeTree :: Board -> Int -> BoardTree
+makeTree brd depth = (Node depth brd [])
 
 --
 -- generateNewStates
