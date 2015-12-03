@@ -575,11 +575,38 @@ stateSearch board history grid slides jumps player depth num = [W,W,W,D,W,W,D,D,
 --
 -- Returns: the list of next boards
 --
-{-
+
 generateNewStates :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> [Board]
--- stub
-generateNewStates board history grid slides jumps player = [[W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B],[W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B]]
--}
+generateNewStates board history grid slides jumps player = validBoards
+    where state = zip board grid
+          validMoves = (moveGenerator state slides jumps player)
+          newBoards = (generateNewBoards validMoves state player)
+          validBoards = findBoardsAlreadySeen newBoards history
+
+findBoardsAlreadySeen :: [Board] -> [Board] -> [Board]
+findBoardsAlreadySeen boards history
+    | null history = boards
+    | null boards = []
+    | (head boards) `elem` history = findBoardsAlreadySeen (tail boards) history
+    | otherwise = (head boards) : findBoardsAlreadySeen (tail boards) history
+
+generateNewBoards :: [Move] -> State -> Piece -> [Board]
+generateNewBoards moves state player
+    | null moves = []
+    | otherwise = (stateToBoard newState) : generateNewBoards (tail moves) state player
+        where move = (head moves)
+              newState = (findMoveAndReplacePointInState move state player)
+
+stateToBoard :: State -> Board
+stateToBoard s = map fst s
+
+findMoveAndReplacePointInState :: Move -> State -> Piece -> State
+findMoveAndReplacePointInState move state player
+    | null state = []
+    | (fst move) == (snd (head state)) = (D, (snd move)) : findMoveAndReplacePointInState move (tail state) player
+    | (snd move) == (snd (head state)) = (player, (snd move)) : findMoveAndReplacePointInState move (tail state) player
+    | otherwise = (head state) : findMoveAndReplacePointInState move (tail state) player
+
 --
 -- moveGenerator
 --
