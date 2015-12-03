@@ -173,7 +173,7 @@ crusher (current:old) p d n = ["W------------BB-BBB","----W--------BB-BBB","-W--
 --
 -- Returns: True if the board is in a state where the game has ended, otherwise False
 --
-
+{-
 gameOver :: Board -> [Board] -> Int -> Bool
 gameOver board history n
     | n == 0 = False
@@ -190,8 +190,9 @@ countPieces str letter x n
     | x < n = True
     | null str = False
     | (head str) == letter = countW((tail str) (x + 1) n)
-    | otherwise countW((tail str) x n)
---
+    | otherwise = countW((tail str) x n)
+-}
+
 -- sTrToBoard
 --
 -- This function consumes a list of characters which can be either 'W' or 'B'
@@ -694,13 +695,13 @@ filterSlideEndingTiles x t p
 -- # leaps, n*10
 -- # slides, n*1
 
-boardEvaluator :: Piece -> [Boards] -> Int -> Board -> Bool -> Int
-boardEvaluator player history n board myTurn =
-    | won Piece Board myTurn            = 100
-    | lost Piece Board myTurn           = -100
-    | otherwise
+boardEvaluator :: Piece -> [Board] -> Int -> Board -> Bool -> Int
+boardEvaluator player history n board myTurn
+    | won player board myTurn   = 100
+    | lost player board myTurn  = -100
+    | otherwise =
         (crunchCount * 25) +
-        (crunchedCount * -25) +
+        (crunchedCount * (-25)) +
         (leapCount * 10) +
         (slideCount * 1)
             where
@@ -709,7 +710,11 @@ boardEvaluator player history n board myTurn =
                 leapCount = 2
                 slideCount = 5
 
+won :: Piece -> Board -> Bool -> Bool
+won player board myTurn = False
 
+lost :: Piece -> Board -> Bool -> Bool
+lost player board myTurn = not False
 --
 -- minimax
 --
