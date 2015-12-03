@@ -40,7 +40,7 @@ jm = generateLeaps gr 3
 sld :: [Slide]
 sld = generateSlides gr 3
 
-genState1 = TestCase (
+test_genState1 = TestCase (
     assertEqual
       "List of all possible new states"
       (generateNewStates cB hist gr sld jm W)
@@ -105,100 +105,150 @@ test_fewW3 = TestCase (
 
 -- Board Evaluator tests
 boardEvaluator_tests = TestList []
-test_boardeval1 = TestCase (
-    assertEqual
-        "can eat"
-        (boardEvaluator
-            B
-            3
-            [  W,W,D,
-              D,B,D,D,
-             D,D,B,D,D,
-              B,D,D,D,
-               D,D,D]
-            True)
-        5)
+-- test_boardeval1 = TestCase (
+--     assertEqual
+--         "can eat"
+--         (boardEvaluator
+--             B
+--             3
+--             [  W,W,D,
+--               D,B,D,D,
+--              D,D,B,D,D,
+--               B,D,D,D,
+--                D,D,D]
+--             True)
+--         5)
 
-test_boardeval2 = TestCase (
-    assertEqual
-        "Win value"
-        (boardEvaluator
-            W
-            3
-            [  W,W,D,
-              D,B,D,D,
-             D,D,B,D,D,
-              B,D,D,D,
-               D,D,D]
-            True)
-        -1)
+-- test_boardeval2 = TestCase (
+--     assertEqual
+--         "Win value"
+--         (boardEvaluator
+--             W
+--             3
+--             [  W,W,D,
+--               D,B,D,D,
+--              D,D,B,D,D,
+--               B,D,D,D,
+--                D,D,D]
+--             True)
+--         -1)
 
-test_boardeval3 = TestCase (
-    assertEqual
-        "Win value"
-        (boardEvaluator
-            B
-            3
-            [  B,W,D,
-              D,B,D,D,
-             D,D,D,D,D,
-              B,D,D,D,
-               D,D,D]
-            True)
-        -1)
+-- test_boardeval3 = TestCase (
+--     assertEqual
+--         "Win value"
+--         (boardEvaluator
+--             B
+--             3
+--             [  B,W,D,
+--               D,B,D,D,
+--              D,D,D,D,D,
+--               B,D,D,D,
+--                D,D,D]
+--             True)
+--         -1)
 
-test_boardeval3 = TestCase (
-    assertEqual
-        "Win value"
-        (boardEvaluator
-            B
-            3
-            [  W,W,W,
-              D,W,W,D,
-             D,D,D,D,D,
-              D,B,B,D,
-               B,B,B]
-            True)
-        0)
+-- test_boardeval4 = TestCase (
+--     assertEqual
+--         "Win value"
+--         (boardEvaluator
+--             B
+--             3
+--             [  W,W,W,
+--               D,W,W,D,
+--              D,D,D,D,D,
+--               D,B,B,D,
+--                B,B,B]
+--             True)
+--         0)
 
-test_boardeval3 = TestCase (
-    assertEqual
-        "Win value"
-        (boardEvaluator
-            W
-            3
-            [  W,W,W,
-              D,W,W,D,
-             D,D,D,D,D,
-              D,B,B,D,
-               B,B,B]
-            True)
-        0)
+-- test_boardeval5 = TestCase (
+--     assertEqual
+--         "Win value"
+--         (boardEvaluator
+--             W
+--             3
+--             [  W,W,W,
+--               D,W,W,D,
+--              D,D,D,D,D,
+--               D,B,B,D,
+--                B,B,B]
+--             True)
+--         0)
 
-test_boardeval3 = TestCase (
-    assertEqual
-        "Win value"
-        (boardEvaluator
-            W
-            3
-            [  W,W,W,
-              D,W,W,D,
-             D,D,D,D,D,
-              D,B,B,D,
-               B,B,B]
-            True)
-        0)
+-- test_boardeval6 = TestCase (
+--     assertEqual
+--         "Win value"
+--         (boardEvaluator
+--             W
+--             3
+--             [  W,W,W,
+--               D,W,W,D,
+--              D,D,D,D,D,
+--               D,B,B,D,
+--                B,B,B]
+--             True)
+--         0)
 
-test_boardeval3 = TestCase (
-    assertEqual
-        "Win value"
-        (boardEvaluator
-            W
-            3
-            [  D,W,W,
-              D,W,W,D,
-             D,D,W,D,D,
-              D,B,B,D,
-               B,B,B]
-            True)
-        0)
+-- test_boardeval7 = TestCase (
+--     assertEqual
+--         "Win value"
+--         (boardEvaluator
+--             W
+--             3
+--             [  D,W,W,
+--               D,W,W,D,
+--              D,D,W,D,D,
+--               D,B,B,D,
+--                B,B,B]
+--             True)
+--         0)
+
+
+-- Node {
+--     depth = 2,
+--     board = [W,W,D,D,W,D,D,D,D,B,D,D,B,D,B,D,D,D,D],
+--     nextBoards = [
+--         Node {
+--             depth = 1,
+--             board = [W,W,D,D,W,D,D,D,D,B,D,D,B,D,B,D,D,D,D],
+--             nextBoards = [
+--                 Node {
+--                     depth = 0,
+--                     board = [D,W,W,D,W,D,D,D,D,B,D,D,B,D,B,D,D,D,D],
+--                     nextBoards = []},
+--                 Node {
+--                     depth = 0,
+--                     board = [D,W,D,D,W,D,D,D,D,W,D,D,B,D,B,D,D,D,D],
+--                     nextBoards = []},
+--                 Node {
+--                     depth = 0,
+--                     board = [W,D,D,D,W,D,D,D,W,B,D,D,B,D,B,D,D,D,D],
+--                     nextBoards = []},
+--                 Node {
+--                     depth = 0,
+--                     board = [D,W,D,W,W,D,D,D,D,B,D,D,B,D,B,D,D,D,D],
+--                     nextBoards = []},
+--                 Node {
+--                     depth = 0,
+--                     board = [W,D,W,D,W,D,D,D,D,B,D,D,B,D,B,D,D,D,D],
+--                     nextBoards = []},
+--                 Node {
+--                     depth = 0,
+--                     board = [W,D,D,D,W,W,D,D,D,B,D,D,B,D,B,D,D,D,D],
+--                     nextBoards = []},
+--                 Node {
+--                     depth = 0,
+--                     board = [W,W,D,W,D,D,D,D,D,B,D,D,B,D,B,D,D,D,D],
+--                     nextBoards = []},
+--                 Node {
+--                     depth = 0,
+--                     board = [W,W,D,D,D,W,D,D,D,B,D,D,B,D,B,D,D,D,D],
+--                     nextBoards = []},
+--                 Node {
+--                     depth = 0,
+--                     board = [W,W,D,D,D,D,D,D,W,B,D,D,B,D,B,D,D,D,D],
+--                     nextBoards = []}
+--             ]
+--         }
+--     ]
+-- }

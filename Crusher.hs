@@ -831,12 +831,12 @@ play history@(current:old) player depth n
        putStrLn $ player:" played: " ++ new
        play history' (if player == 'W' then 'B' else 'W') depth n
 
-myminimax :: BoardTree -> [Int]
+myminimax :: BoardTree -> [Board]
 myminimax (Node _ board children)
-    | null children = [boardEvaluator board]
+    | null children = [board]
     | otherwise  = myminimaxhelper children
 
-myminimaxhelper :: [Tree Board] -> [Int]
+myminimaxhelper :: [Tree Board] -> [Board]
 myminimaxhelper (node:rest)
     | null rest = myminimax node
     | otherwise = (myminimax node) ++ (myminimaxhelper rest)
