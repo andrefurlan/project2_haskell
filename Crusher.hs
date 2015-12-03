@@ -564,8 +564,9 @@ stateSearch board history grid slides jumps player depth size
 --
 
 generateTree :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> BoardTree
-generateTree board history grid slides jumps player depth n =
-        (Node depth board (genTree [board] history grid slides jumps player depth n))
+generateTree board history grid slides jumps player depth n
+    | (depth == 0) = (Node depth board [])
+    | otherwise = (Node depth board (genTree [board] history grid slides jumps player (depth - 1) n))
 
 
 genTree :: [Board] -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> [Tree Board]
