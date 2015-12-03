@@ -566,16 +566,22 @@ stateSearch board history grid slides jumps player depth size
 generateTree :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> BoardTree
 generateTree board history grid slides jumps player depth n
     | (depth == 0) = (Node depth board [])
-    | otherwise = (Node depth board (genTree [board] history grid slides jumps player (depth - 1) n))
-
+    | otherwise = (Node depth board (genTree nextStates history grid slides jumps player (depth - 1) n))
+            where nextStates = (generateNewStates board history grid slides jumps player)
 
 genTree :: [Board] -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> [Tree Board]
 genTree brds history grid slides jumps player depth n
     | null brds = []
     | (depth == 0) = (Node depth (head brds) (statesToTrees [] depth)) : (genTree (tail brds) history grid slides jumps player depth n)
     | otherwise = (Node depth (head brds) nextLevelBrds ) : (genTree (tail brds) history grid slides jumps player (depth - 1) n)
-        where nextStates = (generateNewStates (head brds) history grid slides jumps player)
+        where nextStates = (generateNewStates (head brds) history grid slides jumps nextPlayer)
               nextLevelBrds = (statesToTrees nextStates (depth - 1))
+              nextPlayer = rotatePlayer player
+
+rotatePlayer :: Piece -> Piece
+rotatePlayer x
+    | x == W = B
+    | otherwise = W
 
 statesToTrees :: [Board] -> Int -> [Tree Board]
 statesToTrees brds depth
