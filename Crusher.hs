@@ -127,7 +127,7 @@ type Move = (Point,Point)
 --
 -- Some test results to see what functions are producing
 --
-{-run = crusher ["W------------BB-BBB","----W--------BB-BBB","-W-----------BB-BBB"] 'W' 2 3
+run = crusher ["W------------BB-BBB","----W--------BB-BBB","-W-----------BB-BBB"] 'W' 2 3
 grid0 = generateGrid 3 2 4 []
 slides0 = generateSlides grid0 3
 jumps0 = generateLeaps grid0 3
@@ -135,7 +135,7 @@ board0 = sTrToBoard "WWW-WW-------BB-BBB"
 newBoards0 = generateNewStates board0 [] grid0 slides0 jumps0 W
 tree0 = generateTree board0 [] grid0 slides0 jumps0 W 4 3
 heuristic0 = boardEvaluator W [] 3
--}
+
 --
 -- crusher
 --
@@ -577,6 +577,9 @@ generateTreeHelper brds history grid slides jumps player depth n
             newTail = generateTreeHelper (tail brds) history grid slides jumps player depth n
             otherPlayer = if player == W then B else W
 
+
+swapPlayer :: Piece -> Piece
+swapPlayer player = if player == W then B else W
 -- generateNewStates
 --
 -- This function consumes the arguments described below, it first generates a
@@ -744,8 +747,8 @@ filterSlideEndingTiles x t p
 boardEvaluator :: Piece -> [Board] -> Int -> Board -> Bool -> Int
 -- TODO
 boardEvaluator player history n board myTurn
-    | won player board myTurn   = 100
-    | lost player board myTurn  = -100
+    | won player board n   = 100
+    | lost player board n  = -100
     | otherwise =
         (crunchCount * 25) +
         (crunchedCount * (-25)) +
@@ -757,11 +760,11 @@ boardEvaluator player history n board myTurn
                 leapCount = 2
                 slideCount = 5
 
-won :: Piece -> Board -> Bool -> Bool
-won player board myTurn = False
+won :: Piece -> Board -> Int -> Bool
+won player board n = countPieces board (swapPlayer player) < n
 
-lost :: Piece -> Board -> Bool -> Bool
-lost player board myTurn = not False
+lost :: Piece -> Board -> Int -> Bool
+lost player board n = countPieces board player < n
 --
 -- minimax
 --
@@ -823,7 +826,7 @@ minimax' (Node _ b children) heuristic maxPlayer
         in f (map (\e -> (minimax' e heuristic (not maxPlayer))) children)
 
 
-
+-- try: play ["WWWWWW-------BBBBBB"] 'W' 2 3
 -- function to play the game
 play :: [String] -> Char -> Int -> Int -> IO ()
 play history@(current:old) player depth n
