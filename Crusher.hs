@@ -156,21 +156,17 @@ heuristic0 = boardEvaluator W [] 3
 
 crusher :: [String] -> Char -> Int -> Int -> [String]
 crusher (current:old) player d size =
-    [(boardToStr bestBoard)] ++ (current:old)
+    ((boardToStr bestBoard):(current:old))
         where
-            grid = (generateGrid size (size - 1) (2 * (size - 1)) [])
-            bestBoard = stateSearch
-                (sTrToBoard current)
-                (map sTrToBoard old)
-                grid
-                (generateSlides grid size)
-                (generateLeaps grid size)
-                charToPiece
-                d
-                size
+            grid = generateGrid size (size - 1) (2 * (size - 1)) []
+            slides = generateSlides grid size
+            leaps = generateLeaps grid size
+            board = sTrToBoard current
+            history = map sTrToBoard old
+            bestBoard = stateSearch board history grid slides leaps charToPiece d size
             charToPiece
-                |  player == 'W' = W
-                |  player == 'B' = B
+                | player == 'W' = W
+                | player == 'B' = B
                 | otherwise = D
 --
 -- gameOver
@@ -538,7 +534,7 @@ leapDiagonalDownRight x n = (top, mid , bottomright)
 stateSearch :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> Board
 stateSearch board history grid slides jumps player depth size
     | (gameOver board history size) = board
-    | otherwise = minimax tree heuristic
+    | otherwise                     = minimax tree heuristic
         where
             tree = generateTree board history grid slides jumps player depth size
             heuristic = boardEvaluator player history size
