@@ -782,7 +782,7 @@ minimax :: BoardTree -> (Board -> Bool -> Int) -> Board
 minimax (Node _ b children) heuristic
     | null children     = b
     | otherwise =
-        let valueList = map (\e -> (minimax' e heuristic True)) children
+        let valueList = map (\e -> (minimax' e heuristic False)) children
             maxValue  = maximum valueList
             index     = (findElem valueList maxValue 0)
         in board (children!!index)
@@ -816,17 +816,13 @@ minimax (Node _ b children) heuristic
 --
 
 minimax' :: BoardTree -> (Board -> Bool -> Int) -> Bool -> Int
-minimax' boardTree heuristic maxPlayer
-    | board boardTree == [W,W,W,D] = 25
-    | board boardTree == [W,B] = 50
-    | otherwise = 7
+minimax' (Node _ b children) heuristic maxPlayer
+    | null children = heuristic b maxPlayer
+    | otherwise =
+        let f = if maxPlayer then maximum else minimum
+        in f (map (\e -> (minimax' e heuristic (not maxPlayer))) children)
 
-
-
-
-
-
-
+-- function to play the game
 play :: [String] -> Char -> Int -> Int -> IO ()
 play history@(current:old) player depth n
   | gameOver (sTrToBoard current) (map sTrToBoard old) n = putStrLn "Game over."
@@ -835,26 +831,27 @@ play history@(current:old) player depth n
        putStrLn $ player:" played: " ++ new
        play history' (if player == 'W' then 'B' else 'W') depth n
 
-myminimax :: BoardTree -> [Board]
-myminimax (Node _ board children)
-    | null children = [board]
-    | otherwise  = myminimaxhelper children
 
-myminimaxhelper :: [Tree Board] -> [Board]
-myminimaxhelper (node:rest)
-    | null rest = myminimax node
-    | otherwise = (myminimax node) ++ (myminimaxhelper rest)
-
-
-mytree = Node 3 [W,W] [
-            Node 3 [W,B] [
-                Node 3 [B,W,W,D] [],
-                Node 3 [W,B,B,D] [
-                    Node 3 [B,B,B,B] [],
-                    Node 3 [W,W,W,W] []
+mytree = Node 3 [W,W] [                  -- 10
+            --max
+            Node 3 [W,B] [               -- -25
+                --min
+                Node 3 [B,W,W,D] [],     -- -25
+                Node 3 [W,B,B,D] [       -- 50
+                    --max
+                    Node 3 [B,B,B,B] [], -- 50
+                    Node 3 [W,W,W,W] []  -- 5
                 ]],
-            Node 3 [W,W,W,D] [],
-            Node 3 [W,W,W,D] [],
-            Node 3 [W,W,D,D] []]
+            Node 3 [W,W,W,D] [],         -- 10
+            Node 3 [W,B,W,D] [],         -- 5
+            Node 3 [W,W,D,D] []]         -- 5
 
-myheuristic = boardEvaluator W [] 3
+myheuristic = myboardEvaluator W [] 3
+
+myboardEvaluator :: Piece -> [Board] -> Int -> Board -> Bool -> Int
+-- TODO
+myboardEvaluator player history n board myTurn
+    | board == [B,B,B,B] = 50
+    | board == [B,W,W,D] = -25
+    | board == [W,W,D,D] = 10
+    | otherwise          = 5
