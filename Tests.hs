@@ -52,10 +52,43 @@ test_genState1 = TestCase (
        [W,D,D,D,W,W,D,D,D,B,D,D,B,D,B,D,D,D,D],
        [W,W,D,W,D,D,D,D,D,B,D,D,B,D,B,D,D,D,D],
        [W,W,D,D,D,W,D,D,D,B,D,D,B,D,B,D,D,D,D],
-       [W,W,D,D,D,D,D,D,W,B,D,D,B,D,B,D,D,D,D]]
-  )
+       [W,W,D,D,D,D,D,D,W,B,D,D,B,D,B,D,D,D,D]])
 
+test_genSlides3 = TestCase (
+    assertEqual
+        "List of all possible slides size 3"
+        (generateSlides gr 3)
+        [((0,0),(1,0)),((0,0),(1,1)),((0,0),(0,1)),((1,0),(0,0)),((1,0),(2,0)),((1,0),(2,1)),((1,0),(1,1)),((2,0),(1,0)),((2,0),(3,1)),((2,0),(2,1)),((0,1),(1,1)),((0,1),(1,2)),((0,1),(0,0)),((0,1),(0,2)),((1,1),(0,1)),((1,1),(2,1)),((1,1),(0,0)),((1,1),(2,2)),((1,1),(1,0)),((1,1),(1,2)),((2,1),(1,1)),((2,1),(3,1)),((2,1),(1,0)),((2,1),(3,2)),((2,1),(2,0)),((2,1),(2,2)),((3,1),(2,1)),((3,1),(2,0)),((3,1),(4,2)),((3,1),(3,2)),((0,2),(1,2)),((0,2),(0,3)),((0,2),(0,1)),((1,2),(0,2)),((1,2),(2,2)),((1,2),(0,1)),((1,2),(1,3)),((1,2),(1,1)),((1,2),(0,3)),((2,2),(1,2)),((2,2),(3,2)),((2,2),(1,1)),((2,2),(2,3)),((2,2),(2,1)),((2,2),(1,3)),((3,2),(2,2)),((3,2),(4,2)),((3,2),(2,1)),((3,2),(3,3)),((3,2),(3,1)),((3,2),(2,3)),((4,2),(3,2)),((4,2),(3,1)),((4,2),(3,3)),((0,3),(1,3)),((0,3),(0,2)),((0,3),(0,4)),((0,3),(1,2)),((1,3),(0,3)),((1,3),(2,3)),((1,3),(1,2)),((1,3),(1,4)),((1,3),(2,2)),((1,3),(0,4)),((2,3),(1,3)),((2,3),(3,3)),((2,3),(2,2)),((2,3),(2,4)),((2,3),(3,2)),((2,3),(1,4)),((3,3),(2,3)),((3,3),(3,2)),((3,3),(4,2)),((3,3),(2,4)),((0,4),(1,4)),((0,4),(0,3)),((0,4),(1,3)),((1,4),(0,4)),((1,4),(2,4)),((1,4),(1,3)),((1,4),(2,3)),((2,4),(1,4)),((2,4),(2,3)),((2,4),(3,3))])
 
+test_genSlides2 = TestCase (
+    assertEqual
+        "List of all possible slides size 2"
+        (generateSlides [(0,0),(1,0),(0,1),(1,1),(2,1),(0,2),(1,2)] 2)
+        [
+            ((0,0),(0,1)),
+            ((0,0),(1,1)),
+            ((0,0),(1,0)),
+            ((0,1),(0,0)),
+            ((0,1),(0,2)),
+            ((0,1),(1,1)),
+            ((0,2),(1,2)),
+            ((0,2),(1,1)),
+            ((0,2),(0,1)),
+            ((1,0),(2,1)),
+            ((1,0),(1,1)),
+            ((1,0),(0,0)),
+            ((1,1),(0,2)),
+            ((1,1),(1,2)),
+            ((1,1),(2,1)),
+            ((1,1),(0,1)),
+            ((1,1),(0,0)),
+            ((1,1),(1,0)),
+            ((1,2),(2,1))]
+            ((1,2),(1,1)),
+            ((1,2),(0,2)),
+            ((2,1),(1,2)),
+            ((2,1),(1,1)),
+            ((2,1),(1,0)),
 -- Game Over tests
 gameOver_tests = TestList [test_samemove1, test_samemove2, test_fewW1, test_fewW2, test_fewW3]
 test_samemove1 = TestCase (
@@ -105,103 +138,6 @@ test_fewW3 = TestCase (
 
 -- Board Evaluator tests
 boardEvaluator_tests = TestList []
--- test_boardeval1 = TestCase (
---     assertEqual
---         "can eat"
---         (boardEvaluator
---             B
---             3
---             [  W,W,D,
---               D,B,D,D,
---              D,D,B,D,D,
---               B,D,D,D,
---                D,D,D]
---             True)
---         5)
-
--- test_boardeval2 = TestCase (
---     assertEqual
---         "Win value"
---         (boardEvaluator
---             W
---             3
---             [  W,W,D,
---               D,B,D,D,
---              D,D,B,D,D,
---               B,D,D,D,
---                D,D,D]
---             True)
---         -1)
-
--- test_boardeval3 = TestCase (
---     assertEqual
---         "Win value"
---         (boardEvaluator
---             B
---             3
---             [  B,W,D,
---               D,B,D,D,
---              D,D,D,D,D,
---               B,D,D,D,
---                D,D,D]
---             True)
---         -1)
-
--- test_boardeval4 = TestCase (
---     assertEqual
---         "Win value"
---         (boardEvaluator
---             B
---             3
---             [  W,W,W,
---               D,W,W,D,
---              D,D,D,D,D,
---               D,B,B,D,
---                B,B,B]
---             True)
---         0)
-
--- test_boardeval5 = TestCase (
---     assertEqual
---         "Win value"
---         (boardEvaluator
---             W
---             3
---             [  W,W,W,
---               D,W,W,D,
---              D,D,D,D,D,
---               D,B,B,D,
---                B,B,B]
---             True)
---         0)
-
--- test_boardeval6 = TestCase (
---     assertEqual
---         "Win value"
---         (boardEvaluator
---             W
---             3
---             [  W,W,W,
---               D,W,W,D,
---              D,D,D,D,D,
---               D,B,B,D,
---                B,B,B]
---             True)
---         0)
-
--- test_boardeval7 = TestCase (
---     assertEqual
---         "Win value"
---         (boardEvaluator
---             W
---             3
---             [  D,W,W,
---               D,W,W,D,
---              D,D,W,D,D,
---               D,B,B,D,
---                B,B,B]
---             True)
---         0)
 
 mytree = Node 3 [W,W] [                  -- 10
             --max
@@ -226,3 +162,4 @@ myboardEvaluator player history n board myTurn
     | board == [B,W,W,D] = 25
     | board == [W,W,D,D] = 10
     | otherwise          = 5
+

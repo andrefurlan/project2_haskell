@@ -255,9 +255,9 @@ boardToStr b = map (\ x -> check x) b
 --
 -- Note: This function on being passed 3 2 4 [] would produce
 --		 [   (0,0),(1,0),(2,0)
---		     (0,1),(1,1),(2,1),(3,1)
---	         (0,2),(1,2),(2,2),(3,2),(4,2)
---		     (0,3),(1,3),(2,3),(3,3)
+--		   (0,1),(1,1),(2,1),(3,1)
+--	    (0,2),(1,2),(2,2),(3,2),(4,2)
+--		   (0,3),(1,3),(2,3),(3,3)
 --		     (0,4),(1,4),(2,4)]
 --
 -- Returns: the corresponding Grid i.e the acc when n3 == -1
@@ -291,21 +291,64 @@ generateGrid n1 n2 n3 acc
 -- Returns: the list of all Slides possible on the given grid
 --
 generateSlides :: Grid -> Int -> [Slide]
-generateSlides b n = (removeDuplicateSlides (removeInvalidSlides (generateSlideHelper b n)))
+generateSlides grid n = createSlides grid n
 
--- generate unfiltered list of slides
-generateSlideHelper :: Grid -> Int -> [Slide]
-generateSlideHelper b n
-    | n == 0 = []
-    | null b = []
-    | otherwise = (removeDuplicateSlides (removeInvalidSlides slides)) ++ (generateSlides (tail b) n)
-                where sl = (slideLeft (head b) n)
-                      sr = (slideRight (head b) n)
-                      sul = (slideUpLeft (head b) n)
-                      sdr = (slideDownRight (head b) n)
-                      sur = (slideUpRight (head b)n )
-                      sdl = (slideDownLeft (head b) n)
-                      slides = [sl,sr,sul,sdr,sur,sdl]
+createSlides :: Grid -> Int -> [Slide]
+createSlides grid n = filter (\ x -> (elem (snd x) grid))
+    ([(x,(((fst x) + 0),((snd x) + 1))) | x <- grid, (snd x) <  (n-1)]++
+    [(x,(((fst x) + 1),((snd x) + 1))) | x <- grid, (snd x) <  (n-1)]++
+    [(x,(((fst x) - 1),((snd x) + 1))) | x <- grid, (snd x) >= (n-1)]++
+    [(x,(((fst x) + 0),((snd x) + 1))) | x <- grid, (snd x) >= (n-1)]++
+    [(x,(((fst x) + 1),((snd x) + 0))) | x <- grid]++
+    [(x,(((fst x) - 1),((snd x) + 0))) | x <- grid]++
+    [(x,(((fst x) - 1),((snd x) - 1))) | x <- grid, (snd x) <= (n-1)]++
+    [(x,(((fst x) + 0),((snd x) - 1))) | x <- grid, (snd x) <= (n-1)]++
+    [(x,(((fst x) + 0),((snd x) - 1))) | x <- grid, (snd x) >  (n-1)]++
+    [(x,(((fst x) + 1),((snd x) - 1))) | x <- grid, (snd x) >  (n-1)])
+
+
+-- below top 2 rows      = (col,row+1), (col+1,row+1)
+-- below bottom 3 rows   = (col-1,row+1), (col,row+1)
+-- side                  = (col+1,row), (col-1,row)
+-- above top 3 rows    = (col-1,row-1), (col,row-1)
+-- above bottom 2 rows = (col,row-1), (col+1,row-1)
+
+--		 [   (0,0),(1,0),(2,0)
+--		  (0,1),(1,1),(2,1),(3,1)
+--	   (0,2),(1,2),(2,2),(3,2),(4,2)
+--		  (0,3),(1,3),(2,3),(3,3)
+--		     (0,4),(1,4),(2,4)]
+
+--		 [   (0,0),(1,0),(2,0)
+--  		 (0,1),(1,1),(2,1),(3,1)
+--	         (0,2),(1,2),(2,2),(3,2),(4,2)
+--		     (0,3),(1,3),(2,3),(3,3)
+--		     (0,4),(1,4),(2,4)]
+
+
+--             a a a a
+--            a a a a a
+--           a a a a a a
+--          a a a a a a a
+--           a a a a a a
+--            a a a a a
+--             a a a a
+
+-- generateSlides b n = (removeDuplicateSlides (removeInvalidSlides (generateSlideHelper b n)))
+
+-- -- generate unfiltered list of slides
+-- generateSlideHelper :: Grid -> Int -> [Slide]
+-- generateSlideHelper b n
+--     | n == 0 = []
+--     | null b = []
+--     | otherwise = (removeDuplicateSlides (removeInvalidSlides slides)) ++ (generateSlides (tail b) n)
+--                 where sl = (slideLeft (head b) n)
+--                       sr = (slideRight (head b) n)
+--                       sul = (slideUpLeft (head b) n)
+--                       sdr = (slideDownRight (head b) n)
+--                       sur = (slideUpRight (head b)n )
+--                       sdl = (slideDownLeft (head b) n)
+--                       slides = [sl,sr,sul,sdr,sur,sdl]
 
 removeInvalidSlides :: [Slide] -> [Slide]
 removeInvalidSlides x
@@ -575,7 +618,7 @@ generateTreeHelper brds history grid slides jumps player depth n
         where
             newHead = generateTree (head brds) history grid slides jumps otherPlayer depth n
             newTail = generateTreeHelper (tail brds) history grid slides jumps player depth n
-            otherPlayer = if player == W then B else W
+            otherPlayer = swapPlayer player
 
 
 swapPlayer :: Piece -> Piece
