@@ -779,7 +779,18 @@ lost player board myTurn = not False
 --
 
 minimax :: BoardTree -> (Board -> Bool -> Int) -> Board
-minimax (Node _ b children) heuristic = [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B]
+minimax (Node _ b children) heuristic
+    | null children     = b
+    | otherwise =
+        let valueList = map (\e -> (minimax' e heuristic True)) children
+            maxValue  = maximum valueList
+            index     = (findElem valueList maxValue 0)
+        in board (children!!index)
+        where
+            findElem (x:xs) e acc
+                | x == e = acc
+                | otherwise = findElem xs e (acc + 1)
+
 
 -- minimize opponent's move and maximize my moves
 -- calculate the goodness value at each leaf node
@@ -805,7 +816,15 @@ minimax (Node _ b children) heuristic = [W,W,W,D,W,W,D,D,D,D,D,D,D,B,B,D,B,B,B]
 --
 
 minimax' :: BoardTree -> (Board -> Bool -> Int) -> Bool -> Int
-minimax' boardTree heuristic maxPlayer = 4
+minimax' boardTree heuristic maxPlayer
+    | board boardTree == [W,W,W,D] = 25
+    | board boardTree == [W,B] = 50
+    | otherwise = 7
+
+
+
+
+
 
 
 play :: [String] -> Char -> Int -> Int -> IO ()
@@ -837,3 +856,5 @@ mytree = Node 3 [W,W] [
             Node 3 [W,W,W,D] [],
             Node 3 [W,W,W,D] [],
             Node 3 [W,W,D,D] []]
+
+myheuristic = boardEvaluator W [] 3
