@@ -156,14 +156,14 @@ heuristic0 = boardEvaluator W [] 3
 
 crusher :: [String] -> Char -> Int -> Int -> [String]
 crusher (current:old) player d size =
-    ((boardToStr bestBoard):(current:old))
+    let bestBoard = stateSearch board history grid slides leaps charToPiece d size
+    in ((boardToStr bestBoard):(current:old))
         where
             grid = generateGrid size (size - 1) (2 * (size - 1)) []
             slides = generateSlides grid size
             leaps = generateLeaps grid size
             board = sTrToBoard current
             history = map sTrToBoard old
-            bestBoard = stateSearch board history grid slides leaps charToPiece d size
             charToPiece
                 | player == 'W' = W
                 | player == 'B' = B
@@ -780,7 +780,7 @@ lost player board myTurn = not False
 
 minimax :: BoardTree -> (Board -> Bool -> Int) -> Board
 minimax (Node _ b children) heuristic
-    | null children     = b
+    | null children = b
     | otherwise =
         let valueList = map (\e -> (minimax' e heuristic False)) children
             maxValue  = maximum valueList
@@ -822,6 +822,8 @@ minimax' (Node _ b children) heuristic maxPlayer
         let f = if maxPlayer then maximum else minimum
         in f (map (\e -> (minimax' e heuristic (not maxPlayer))) children)
 
+
+
 -- function to play the game
 play :: [String] -> Char -> Int -> Int -> IO ()
 play history@(current:old) player depth n
@@ -830,28 +832,3 @@ play history@(current:old) player depth n
        let history'@(new:_) = crusher history player depth n
        putStrLn $ player:" played: " ++ new
        play history' (if player == 'W' then 'B' else 'W') depth n
-
-
-mytree = Node 3 [W,W] [                  -- 10
-            --max
-            Node 3 [W,B] [               -- -25
-                --min
-                Node 3 [B,W,W,D] [],     -- -25
-                Node 3 [W,B,B,D] [       -- 50
-                    --max
-                    Node 3 [B,B,B,B] [], -- 50
-                    Node 3 [W,W,W,W] []  -- 5
-                ]],
-            Node 3 [W,W,W,D] [],         -- 10
-            Node 3 [W,B,W,D] [],         -- 5
-            Node 3 [W,W,D,D] []]         -- 5
-
-myheuristic = myboardEvaluator W [] 3
-
-myboardEvaluator :: Piece -> [Board] -> Int -> Board -> Bool -> Int
--- TODO
-myboardEvaluator player history n board myTurn
-    | board == [B,B,B,B] = 50
-    | board == [B,W,W,D] = -25
-    | board == [W,W,D,D] = 10
-    | otherwise          = 5

@@ -203,3 +203,26 @@ boardEvaluator_tests = TestList []
 --             True)
 --         0)
 
+mytree = Node 3 [W,W] [                  -- 10
+            --max
+            Node 3 [W,B] [               -- -25
+                --min
+                Node 3 [B,W,W,D] [],     -- -25
+                Node 3 [W,B,B,D] [       -- 50
+                    --max
+                    Node 3 [B,B,B,B] [], -- 50
+                    Node 3 [W,W,W,W] []  -- 5
+                ]],
+            Node 3 [W,W,W,D] [],         -- 10
+            Node 3 [W,B,W,D] [],         -- 5
+            Node 3 [W,W,D,D] []]         -- 5
+
+myheuristic = myboardEvaluator W [] 3
+
+myboardEvaluator :: Piece -> [Board] -> Int -> Board -> Bool -> Int
+-- TODO
+myboardEvaluator player history n board myTurn
+    | board == [B,B,B,B] = 50
+    | board == [B,W,W,D] = 25
+    | board == [W,W,D,D] = 10
+    | otherwise          = 5
