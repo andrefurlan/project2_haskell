@@ -296,15 +296,15 @@ generateSlides grid n = createSlides grid n
 createSlides :: Grid -> Int -> [Slide]
 createSlides grid n = filter (\ x -> (elem (snd x) grid))
     ([(x,(((fst x) + 0),((snd x) + 1))) | x <- grid, (snd x) <  (n-1)]++
-    [(x,(((fst x) + 1),((snd x) + 1))) | x <- grid, (snd x) <  (n-1)]++
-    [(x,(((fst x) - 1),((snd x) + 1))) | x <- grid, (snd x) >= (n-1)]++
-    [(x,(((fst x) + 0),((snd x) + 1))) | x <- grid, (snd x) >= (n-1)]++
-    [(x,(((fst x) + 1),((snd x) + 0))) | x <- grid]++
-    [(x,(((fst x) - 1),((snd x) + 0))) | x <- grid]++
-    [(x,(((fst x) - 1),((snd x) - 1))) | x <- grid, (snd x) <= (n-1)]++
-    [(x,(((fst x) + 0),((snd x) - 1))) | x <- grid, (snd x) <= (n-1)]++
-    [(x,(((fst x) + 0),((snd x) - 1))) | x <- grid, (snd x) >  (n-1)]++
-    [(x,(((fst x) + 1),((snd x) - 1))) | x <- grid, (snd x) >  (n-1)])
+     [(x,(((fst x) + 1),((snd x) + 1))) | x <- grid, (snd x) <  (n-1)]++
+     [(x,(((fst x) - 1),((snd x) + 1))) | x <- grid, (snd x) >= (n-1)]++
+     [(x,(((fst x) + 0),((snd x) + 1))) | x <- grid, (snd x) >= (n-1)]++
+     [(x,(((fst x) + 1),((snd x) + 0))) | x <- grid]++
+     [(x,(((fst x) - 1),((snd x) + 0))) | x <- grid]++
+     [(x,(((fst x) - 1),((snd x) - 1))) | x <- grid, (snd x) <= (n-1)]++
+     [(x,(((fst x) + 0),((snd x) - 1))) | x <- grid, (snd x) <= (n-1)]++
+     [(x,(((fst x) + 0),((snd x) - 1))) | x <- grid, (snd x) >  (n-1)]++
+     [(x,(((fst x) + 1),((snd x) - 1))) | x <- grid, (snd x) >  (n-1)])
 
 
 -- below top 2 rows      = (col,row+1), (col+1,row+1)
@@ -312,6 +312,7 @@ createSlides grid n = filter (\ x -> (elem (snd x) grid))
 -- side                  = (col+1,row), (col-1,row)
 -- above top 3 rows    = (col-1,row-1), (col,row-1)
 -- above bottom 2 rows = (col,row-1), (col+1,row-1)
+
 
 --		 [   (0,0),(1,0),(2,0)
 --		  (0,1),(1,1),(2,1),(3,1)
@@ -326,13 +327,13 @@ createSlides grid n = filter (\ x -> (elem (snd x) grid))
 --		     (0,4),(1,4),(2,4)]
 
 
---             a a a a
+--             a a a (3,0)
 --            a a a a a
 --           a a a a a a
---          a a a a a a a
+--          a a a a a a (6,3)
 --           a a a a a a
 --            a a a a a
---             a a a a
+--             a a a (3,6)
 
 -- generateSlides b n = (removeDuplicateSlides (removeInvalidSlides (generateSlideHelper b n)))
 
@@ -479,6 +480,35 @@ topDownLeft x n
 --
 -- Returns: the list of all Jumps possible on the given grid
 --
+--		 [   (0-0),(1,0),(2-0)            0
+--		  (0,1),(1,1),(2,1),(3,1)         0
+--	   (0-2),(1,2),(2-2),(3,2),(4-2)      0
+--		  (0,3),(1,3),(2,3),(3,3)         1
+--		     (0-4),(1,4),(2-4)]           2
+-- direction: increase of #row
+-- direction: increase #column if #row is equal
+--		 [   (0-0),(1,0),(2-0)
+--		  (0,1),(1,1),(2,1),(3,1)
+--	   (0-2),(1,2),(2-2),(3,2),(4-2)
+--	      (1,3),(2,3),(3,3),(4,3)
+--		     (2-4),(3,4),(4-4)]
+
+-- [0 | x <- [1..3]]++[1..(3-1)]
+-- map (\ x -> ( fst (snd x) + ([0 | x <- [1..3]]++[1..(3-1)])!!(snd (snd x)), snd (snd x) )) s
+generateJumps :: Grid -> Int -> [Slide]
+generateJumps grid n = createJumps grid n
+
+createJumps :: Grid -> Int -> [Slide]
+createJumps grid n =
+    let sensibleGrid = map (\ x -> ( fst x + ([0 | x <- [1..3]]++[1..(3-1)])!!(snd x), snd x )) grid
+    in filter (\ x -> (elem (snd x) grid))
+        ([(x,(((fst x) + 0),((snd x) + 2))) | x <- grid]++
+        [(x,(((fst x) + 2),((snd x) + 2))) | x <- grid]++
+        [(x,(((fst x) + 2),((snd x) + 0))) | x <- grid]++
+        [(x,(((fst x) - 2),((snd x) + 0))) | x <- grid]++
+        [(x,(((fst x) - 2),((snd x) - 2))) | x <- grid]++
+        [(x,(((fst x) + 0),((snd x) - 2))) | x <- grid])
+
 
 generateLeaps :: Grid -> Int -> [Jump]
 generateLeaps b n = (removeInvalidJumps (generateLeapsHelper b n))
