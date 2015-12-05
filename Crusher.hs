@@ -156,8 +156,10 @@ heuristic0 = boardEvaluator W [] 3
 
 crusher :: [String] -> Char -> Int -> Int -> [String]
 crusher (current:old) player d size =
+    -- gets the best board from stateSearch
     let bestBoard = stateSearch board history grid slides leaps charToPiece d size
-    in ((boardToStr bestBoard):(current:old))
+    -- append the new best board to the head of the history
+    in (boardToStr bestBoard):(current:old)
         where
             grid = generateGrid size (size - 1) (2 * (size - 1)) []
             slides = generateSlides grid size
@@ -188,9 +190,21 @@ gameOver :: Board -> [Board] -> Int -> Bool
 gameOver board history n
     | n == 0 = True
     | otherwise =
+        -- checks if the board has been played before
         board `elem` history ||
+        -- checks if neither players have less than n pieces
         (countPieces board W) < n  ||
         (countPieces board B) < n
+
+-- countPieces
+
+-- Counts the number of a pieces a player has in the board
+
+-- Arguments:
+-- -- board: the board to use in the count
+-- -- player: the piece to count (W/B)
+
+-- Returns: the number of pieces in board
 
 countPieces :: Board -> Piece -> Int
 countPieces board player =
@@ -291,24 +305,29 @@ generateGrid n1 n2 n3 acc
 -- Returns: the list of all Slides possible on the given grid
 --
 generateSlides :: Grid -> Int -> [Slide]
+-- generates all possible slides and filter them so only possible ones are
+-- returned. This would be much easier on the new grid used on generateLeaps
 generateSlides grid n = filter (\ x -> (elem (snd x) grid))
+     -- move south-east top (n-1) rows
     ([(x,(((fst x) + 0),((snd x) + 1))) | x <- grid, (snd x) <  (n-1)]++
+     -- move south-west top (n-1) rows
      [(x,(((fst x) + 1),((snd x) + 1))) | x <- grid, (snd x) <  (n-1)]++
+     -- move south-east bottom n rows
      [(x,(((fst x) - 1),((snd x) + 1))) | x <- grid, (snd x) >= (n-1)]++
+     -- move south-west bottom n rows
      [(x,(((fst x) + 0),((snd x) + 1))) | x <- grid, (snd x) >= (n-1)]++
+     -- move east
      [(x,(((fst x) + 1),((snd x) + 0))) | x <- grid]++
+     -- move west
      [(x,(((fst x) - 1),((snd x) + 0))) | x <- grid]++
+     -- move north-west top n rows
      [(x,(((fst x) - 1),((snd x) - 1))) | x <- grid, (snd x) <= (n-1)]++
+     -- move north-east top n rows
      [(x,(((fst x) + 0),((snd x) - 1))) | x <- grid, (snd x) <= (n-1)]++
+     -- move north-west bottom (n-1) rows
      [(x,(((fst x) + 0),((snd x) - 1))) | x <- grid, (snd x) >  (n-1)]++
+     -- move north-east bottom (n-1) rows
      [(x,(((fst x) + 1),((snd x) - 1))) | x <- grid, (snd x) >  (n-1)])
-
-
--- below top 2 rows      = (col,row+1), (col+1,row+1)
--- below bottom 3 rows   = (col-1,row+1), (col,row+1)
--- side                  = (col+1,row), (col-1,row)
--- above top 3 rows    = (col-1,row-1), (col,row-1)
--- above bottom 2 rows = (col,row-1), (col+1,row-1)
 
 --
 -- generateLeaps
@@ -330,28 +349,93 @@ generateSlides grid n = filter (\ x -> (elem (snd x) grid))
 --
 -- Returns: the list of all Jumps possible on the given grid
 
+-- TODO: This function turned out to be hard to do in the original
+-- grid system, so I converted to a new grid system (see convertPoint)
+-- If we have time, it would be good to create this new grid in
+-- generateGrid, so everything would be smooth. But I don't know the
+-- implications to change the other functions, so I leave it here
+-- for now.
+
 generateLeaps :: Grid -> Int -> [Jump]
+-- creates a grid with coordinate system that is actually
+-- sensible, list all possible jumps using that grid, filter
+-- the jumps that go out of the grid, and revert the jumps
+-- to the original grid coordinate system.
 generateLeaps grid n = revertJumpsToOldGrid $ filterJumps $ listAllJumps sensibleGrid
     where
+        -- only keep jumps that land inside the grid
         filterJumps jumps = filter (\ x -> (elem (trd' x) sensibleGrid)) jumps
-        sensibleGrid = map (\x -> (convertGrid (+) x n)) grid
+        -- get a grid with an easy to deal coordinate system
+        sensibleGrid = map (\x -> (convertPoint (+) x n)) grid
+        -- reverts each Point in the jump list to old grid system
         revertJumpsToOldGrid jumps = map (\x -> (revertFun x)) jumps
         revertFun x = (
-            (convertGrid (-) (fst' x) n),
-            (convertGrid (-) (snd' x) n),
-            (convertGrid (-) (trd' x) n))
+            (convertPoint (-) (fst' x) n),
+            (convertPoint (-) (snd' x) n),
+            (convertPoint (-) (trd' x) n))
+
+-- listAllJumps
+--
+-- This function takes a grid and generates a list of all the
+-- six directions a jump can go to from all points in the grid
+
+-- Arguments:
+-- -- grid: Grid
+
+-- Returns:
+-- -- the list of all jumps (even impossible ones)
 
 listAllJumps :: Grid -> [Jump]
 listAllJumps grid =
+    -- jump south-west
     [(x, ( ((fst x) + 0), ((snd x) + 1) ), ( ((fst x) + 0), ((snd x) + 2) ) ) | x <- grid]++
+    -- jump south-east
     [(x, ( ((fst x) + 1), ((snd x) + 1) ), ( ((fst x) + 2), ((snd x) + 2) ) ) | x <- grid]++
+    -- jump east
     [(x, ( ((fst x) + 1), ((snd x) + 0) ), ( ((fst x) + 2), ((snd x) + 0) ) ) | x <- grid]++
+    -- jump west
     [(x, ( ((fst x) - 1), ((snd x) + 0) ), ( ((fst x) - 2), ((snd x) + 0) ) ) | x <- grid]++
+    -- jump north-west
     [(x, ( ((fst x) - 1), ((snd x) - 1) ), ( ((fst x) - 2), ((snd x) - 2) ) ) | x <- grid]++
+    -- jump north-east
     [(x, ( ((fst x) + 0), ((snd x) - 1) ), ( ((fst x) + 0), ((snd x) - 2) ) ) | x <- grid]
 
-convertGrid :: (Int -> Int -> Int) -> Point -> Int -> Point
-convertGrid f p n = ( f (fst p) (([0 | x <- [1..n]]++[1..(n-1)])!!(snd p)), snd p )
+-- convertPoint
+
+-- This function applies a function to the (n-1) rows of the grid
+-- to adjust the point so actual position based calculations are
+-- easy to do.
+
+-- Arguments:
+-- -- f: a function as (+) or (-)
+-- -- p: a point
+-- -- n: size of grid
+
+-- Note:
+-- In a normal grid, the numbers on the right will be applied to
+-- to point belonging to the respective row, producing the points in
+-- the grid in a way that the direction can be checked by easily checking
+-- if the column number follows the pattern. So instead of checking in a jump
+-- (4-2) (3,3) (2,4), we can check (4,2) (4,3) (4,4).
+
+--          Original grid points      Difference
+--		 [   (0-0),(1,0),(2-0)            0
+--		  (0,1),(1,1),(2,1),(3,1)         0
+--	   (0-2),(1,2),(2-2),(3,2),(4-2)      0
+--		  (0,3),(1,3),(2,3),(3,3)         1
+--		     (0-4),(1,4),(2-4)]           2
+
+--            New grid points
+--		 [   (0-0),(1,0),(2-0)
+--		  (0,1),(1,1),(2,1),(3,1)
+--	   (0-2),(1,2),(2-2),(3,2),(4-2)
+--	      (1,3),(2,3),(3,3),(4,3)
+--		     (2-4),(3,4),(4-4)]
+
+
+
+convertPoint :: (Int -> Int -> Int) -> Point -> Int -> Point
+convertPoint f p n = ( f (fst p) (([0 | x <- [1..n]]++[1..(n-1)])!!(snd p)), snd p )
 
 -- Helpers to grab value from a triple
 trd' :: Jump -> Point
@@ -394,6 +478,7 @@ stateSearch board history grid slides jumps player depth size
         where
             tree = generateTree board history grid slides jumps player depth size
             heuristic = boardEvaluator player history size
+
 --
 -- generateTree
 --
@@ -433,9 +518,14 @@ generateTreeHelper brds history grid slides jumps player depth n
             newTail = generateTreeHelper (tail brds) history grid slides jumps player depth n
             otherPlayer = swapPlayer player
 
+-- swapPlayer
+
+-- If given W, returns B. If given B returns W.
 
 swapPlayer :: Piece -> Piece
 swapPlayer player = if player == W then B else W
+
+
 -- generateNewStates
 --
 -- This function consumes the arguments described below, it first generates a
