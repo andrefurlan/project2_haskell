@@ -134,7 +134,7 @@ jumps0 = generateLeaps grid0 3
 board0 = sTrToBoard "WWW-WW-------BB-BBB"
 newBoards0 = generateNewStates board0 [] grid0 slides0 jumps0 W
 tree0 = generateTree board0 [] grid0 slides0 jumps0 W 4 3
-heuristic0 = boardEvaluator W [] 3
+heuristic0 = boardEvaluator W grid0 3
 
 --
 -- crusher
@@ -473,11 +473,14 @@ fst' (x,_,_) = x
 
 stateSearch :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> Board
 stateSearch board history grid slides jumps player depth size
+    -- return the same board if the game has ended
     | (gameOver board history size) = board
+    -- call minimax the with move tree from the current board
+    -- which will returnthe best board given a specific heuristic
     | otherwise                     = minimax tree heuristic
         where
             tree = generateTree board history grid slides jumps player depth size
-            heuristic = boardEvaluator player history size
+            heuristic = boardEvaluator player grid size
 
 --
 -- generateTree
@@ -502,18 +505,49 @@ stateSearch board history grid slides jumps player depth size
 
 generateTree :: Board -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> BoardTree
 generateTree board history grid slides jumps player depth n
-    | depth == 0    = (Node depth board [])
-    | otherwise     = (Node depth board children)
+    -- base case, depth of zero, just return a tree with the root (could be a leaf)
+    | depth == 0                = (Node depth board [])
+    -- no new children for game over boards
+    | gameOver board history n  = (Node depth board [])
+    -- return the tree with children, and recursively build the tree until leaves.
+    -- this takes care of the first level of the tree, the rest is build using generateTreeHelper
+    | otherwise                 = (Node depth board children)
             where
+                -- list all possible states from a board
                 nextStates = generateNewStates board history grid slides jumps player
+                -- build a list of tree nodes with max depth n-1 as the children (reduction step here)
                 children = generateTreeHelper nextStates history grid slides jumps player (depth - 1) n
 
+--
+-- generateTreeHelper
+--
+-- This function consumes the arguments below and creates the tree nodes
+-- for the children of a given board in generateTree function. It recursively
+-- construct the tree for each child node.
+--
+-- Arguments:
+-- -- brds: a list of Board representing the children of a board
+-- -- history: a list of Boards of representing all boards already seen
+-- -- grid: the Grid representing the coordinate-grid the game being played
+-- -- slides: the list of all Slides possible for the given grid
+-- -- jumps: the list of all Jumps possible for the given grid
+-- -- player: W or B representing the player the program is
+-- -- depth: an Integer indicating depth of search tree
+-- -- n: an Integer representing the dimensions of the board
+--
+-- Returns: the list of Tree Board representing the children of list board in GenerateTree
+--
 
 generateTreeHelper :: [Board] -> [Board] -> Grid -> [Slide] -> [Jump] -> Piece -> Int -> Int -> [Tree Board]
 generateTreeHelper brds history grid slides jumps player depth n
+    -- if no more moves can be made, then just return a empty list
     | null brds     = []
-    | otherwise     = (newHead:newTail)
+    -- build a list of trees recursively
+    | otherwise     = newHead:newTail
         where
+            -- for each element of the tree, generate a node with children.
+            -- important to note that for each depth the player alternates so minimax works
+            -- correctly
             newHead = generateTree (head brds) history grid slides jumps otherPlayer depth n
             newTail = generateTreeHelper (tail brds) history grid slides jumps player depth n
             otherPlayer = swapPlayer player
@@ -690,27 +724,20 @@ filterSlideEndingTiles x t p
 -- # leaps, n*10
 -- # slides, n*1
 
-boardEvaluator :: Piece -> [Board] -> Int -> Board -> Bool -> Int
--- TODO
-boardEvaluator player history n board myTurn
-    | won player board n   = 100
-    | lost player board n  = -100
-    | otherwise =
-        (crunchCount * 25) +
-        (crunchedCount * (-25)) +
-        (leapCount * 10) +
-        (slideCount * 1)
+boardEvaluator :: Piece -> Grid -> Int -> Board -> Bool -> Int
+-- This is a very basic heuristic. Just check number of pieces
+-- and who won the game.
+-- As this function will be called exponentially many times, I
+-- decided to leave it simple.
+boardEvaluator player grid n board myTurn
+    | won       = 100
+    | lost      = -100
+    | otherwise = crunchCount * 25
             where
-                crunchCount = 1
-                crunchedCount = 0
-                leapCount = 2
-                slideCount = 5
+                crunchCount = (countPieces board player) - (countPieces board (swapPlayer player))
+                won = countPieces board (swapPlayer player) < n
+                lost = countPieces board player < n
 
-won :: Piece -> Board -> Int -> Bool
-won player board n = countPieces board (swapPlayer player) < n
-
-lost :: Piece -> Board -> Int -> Bool
-lost player board n = countPieces board player < n
 --
 -- minimax
 --
@@ -729,8 +756,14 @@ lost player board n = countPieces board player < n
 
 minimax :: BoardTree -> (Board -> Bool -> Int) -> Board
 minimax (Node _ b children) heuristic
+    -- if there is no option, the decision in made
     | null children = b
     | otherwise =
+        -- it returns the board that maximizes the given heuristic from all children
+        -- to find that, it calls minimax', which will build the value bottom-up
+        -- call minimax' with False maxPlayer because the first level is dealt here
+        -- using maximum. So the next level will be my opponent's move, which I
+        -- want to minimize.
         let valueList = map (\e -> (minimax' e heuristic False)) children
             maxValue  = maximum valueList
             index     = (findElem valueList maxValue 0)
@@ -766,9 +799,14 @@ minimax (Node _ b children) heuristic
 
 minimax' :: BoardTree -> (Board -> Bool -> Int) -> Bool -> Int
 minimax' (Node _ b children) heuristic maxPlayer
+    -- base case, it is a leaf. All leaves should have an heuristic value assigned
     | null children = heuristic b maxPlayer
     | otherwise =
+        -- if it is my turn, I want to maximize, if it is my opponent's turn
+        -- I want to minimize
         let f = if maxPlayer then maximum else minimum
+        -- apply minimax' recursively to each child, swapping players
+        -- at each level
         in f (map (\e -> (minimax' e heuristic (not maxPlayer))) children)
 
 
