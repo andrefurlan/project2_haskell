@@ -3,6 +3,7 @@ module Crusher where
 
 -- Andre Furlan Bueno - o3d9 - 45222130
 -- Rennie Haylock - p1a9 - 57117137
+-- Andrew Li - h2e9 - 11948130
 
 -- CPSC 312 - Project 2
 -- by Khurram Ali Jaffery
@@ -590,12 +591,38 @@ generateNewStates board history grid slides jumps player = validBoards
           newBoards = (generateNewBoards validMoves state player)
           validBoards = findBoardsAlreadySeen newBoards history
 
+-- findBoardsAlreadySeen
+--
+-- This functions filters takes a list of newly generated boards from generateNewBoards
+-- and removes it if they exist in the history
+--
+-- Arguments:
+-- -- boards: list of newly created boards based on the current state
+-- -- history: a list of Boards of representing all boards already seen
+--
+-- Returns: A list of Boards that are not in history
+--
+
 findBoardsAlreadySeen :: [Board] -> [Board] -> [Board]
 findBoardsAlreadySeen boards history
     | null history = boards
     | null boards = []
     | (head boards) `elem` history = findBoardsAlreadySeen (tail boards) history
     | otherwise = (head boards) : findBoardsAlreadySeen (tail boards) history
+
+--
+-- generateNewBoards
+-- This function takes a list of moves and the state of the board
+-- and generates all possible boards with the given move of the player
+-- that is up using the findMoveAndReplacePointInState function
+--
+-- Arguments:
+-- -- moves: List of moves for the given state
+-- -- state: The current state of the board
+-- -- player: W or B representing the player the program is
+--
+-- Returns: A list of boards created with the moves of the player
+--
 
 generateNewBoards :: [Move] -> State -> Piece -> [Board]
 generateNewBoards moves state player
@@ -604,8 +631,33 @@ generateNewBoards moves state player
         where move = (head moves)
               newState = (findMoveAndReplacePointInState move state player)
 
+-- stateToBoard
+-- This function consumes a state and returns the given state
+-- in a representation of a board
+--
+-- Arguments:
+-- -- s: state to be converted to board
+--
+-- Returns: a board representing the given state
+
 stateToBoard :: State -> Board
 stateToBoard s = map fst s
+
+-- findMoveAndReplacePointInState
+--
+-- This function takes a move and replaces the first point of the move to
+-- be an empty spot on the board, then it take the second point of the move and
+-- replaces it with the newly assigned piece to the point thus creating a tile
+-- which will then be cons together to form a State. Otherwise, leave the Tile
+-- alone and check the next tile against the move
+--
+-- Arguments:
+-- -- move: The move the game is trying to make
+-- -- state: The state of the current game
+-- -- player: W or B representing the player the program is
+--
+-- Returns: A new state with the move executed
+--
 
 findMoveAndReplacePointInState :: Move -> State -> Piece -> State
 findMoveAndReplacePointInState move state player
@@ -613,7 +665,6 @@ findMoveAndReplacePointInState move state player
     | (fst move) == (snd (head state)) = (D, (snd move)) : findMoveAndReplacePointInState move (tail state) player
     | (snd move) == (snd (head state)) = (player, (snd move)) : findMoveAndReplacePointInState move (tail state) player
     | otherwise = (head state) : findMoveAndReplacePointInState move (tail state) player
-
 --
 -- moveGenerator
 --
@@ -645,61 +696,159 @@ moveGenerator :: State -> [Slide] -> [Jump] -> Piece -> [Move]
 moveGenerator state slides jumps player =
     (validJumps jumps state player) ++ (validSlides slides state player)
 
--- Generate a list of all valid Jumps from state of the board
+--
+-- validJumps
+--
+-- This functions takes in a list of jumps and a list of tiles (state)
+-- and the player that is up to generate a list of all valid Jumps
+-- from the state of the board
+--
+-- Arguments:
+-- -- jumps: the list of all Jumps possible for the given grid
+-- -- tiles:  a State representing the most recent state
+-- -- player: W or B representing the player the program is
+--
+-- Returns: List of validJumps in the form of list of valid Move
+--
+
 validJumps :: [Jump] -> [Tile] -> Piece -> [Move]
-validJumps x t player
-    | null x = []
-    | ((fst' (head x)) `elem` startingPoint) &&
-      ((snd' (head x)) `elem` middlePoint) &&
-      ((trd' (head x)) `elem` endingPoint) =
-        ((fst' (head x)), (trd' (head x))) : validJumps (tail x) t player
-    | otherwise = validJumps (tail x) t player
-        where startingPoint = filterJumpStartingTiles (head x) t player
-              middlePoint = filterJumpMiddleTiles (head x) t player
-              endingPoint = filterJumpEndingTiles (head x) t player
+validJumps jumps tiles player
+    | null jumps = []
+    | ((fst' (head jumps)) `elem` startingPoint) &&
+      ((snd' (head jumps)) `elem` middlePoint) &&
+      ((trd' (head jumps)) `elem` endingPoint) =
+        ((fst' (head jumps)), (trd' (head jumps))) : validJumps (tail jumps) tiles player
+    | otherwise = validJumps (tail jumps) tiles player
+        where startingPoint = filterJumpStartingTiles (head jumps) tiles player
+              middlePoint = filterJumpMiddleTiles (head jumps) tiles player
+              endingPoint = filterJumpEndingTiles (head jumps) tiles player
+
+--
+-- filterJumpStartingTiles
+--
+-- This functions filters out all the valid starting points for a given jump
+-- in the current state of the board represtented as a list of tiles
+--
+-- Arguments:
+-- -- jmp: the jump that is currently compared to in the current state
+-- -- t:  a State representing the most recent state
+-- -- player: W or B representing the player the program is
+--
+-- Returns: A list of all valid starting points for the jump
+--
 
 filterJumpStartingTiles :: Jump -> [Tile] -> Piece -> [Point]
-filterJumpStartingTiles x t player
+filterJumpStartingTiles jmp t player
     | null t = []
-    | ((fst' x) == (snd (head t))) && ((fst (head t)) == player) = (snd (head t)) : filterJumpStartingTiles x (tail t) player
-    | otherwise = filterJumpStartingTiles x (tail t) player
+    | ((fst' jmp) == (snd (head t))) && ((fst (head t)) == player) = (snd (head t)) : filterJumpStartingTiles jmp (tail t) player
+    | otherwise = filterJumpStartingTiles jmp (tail t) player
+
+--
+-- filterJumpMiddleTiles
+--
+-- This functions filters out all the valid middle points for a given jump
+-- in the current state of the board represtented as a list of tiles
+--
+-- Arguments:
+-- -- jmp: the jump that is currently compared to in the current state
+-- -- t:  a State representing the most recent state
+-- -- player: W or B representing the player the program is
+--
+-- Returns: A list of all valid middle points for the jump
+--
 
 filterJumpMiddleTiles :: Jump -> [Tile] -> Piece -> [Point]
-filterJumpMiddleTiles x t player
+filterJumpMiddleTiles jmp t player
     | null t = []
-    | ((snd' x) == (snd (head t))) && ((fst (head t)) == player) = (snd (head t)) : filterJumpMiddleTiles x (tail t) player
-    | otherwise = filterJumpMiddleTiles x (tail t) player
+    | ((snd' jmp) == (snd (head t))) && ((fst (head t)) == player) = (snd (head t)) : filterJumpMiddleTiles jmp (tail t) player
+    | otherwise = filterJumpMiddleTiles jmp (tail t) player
+
+--
+-- filterJumpEndingTiles
+--
+-- This functions filters out all the valid ending points for a given jump
+-- in the current state of the board represtented as a list of tiles
+--
+-- Arguments:
+-- -- jmp: the jump that is currently compared to in the current state
+-- -- t:  a State representing the most recent state
+-- -- player: W or B representing the player the program is
+--
+-- Returns: A list of all valid ending points for the jump
+--
 
 filterJumpEndingTiles :: Jump -> [Tile] -> Piece -> [Point]
-filterJumpEndingTiles x t player
+filterJumpEndingTiles jmp t player
     | null t = []
-    | ((trd' x) == (snd (head t))) && ((fst (head t)) /= player) = (snd (head t)) : filterJumpEndingTiles x (tail t) player
-    | otherwise = filterJumpEndingTiles x (tail t) player
+    | ((trd' jmp) == (snd (head t))) && ((fst (head t)) /= player) = (snd (head t)) : filterJumpEndingTiles jmp (tail t) player
+    | otherwise = filterJumpEndingTiles jmp (tail t) player
 
--- Generate a list of all valid slides from the state of the board
+--
+-- validSlides
+--
+-- This functions takes in a list of slides and a list of tiles (state)
+-- and the player that is up to generate a list of all valid slides
+-- from the state of the board
+--
+-- Arguments:
+-- -- slides: the list of all Jumps possible for the given grid
+-- -- t:  a State representing the most recent state
+-- -- player: W or B representing the player the program is
+--
+-- Returns: List of validSlides in the form of list of valid Move
+--
+
 validSlides :: [Slide] -> [Tile] -> Piece -> [Move]
-validSlides x t player
-    | null x = []
-    | ((fst (head x)) `elem` startingPoint) &&
-      ((snd (head x)) `elem` endingPoint) =
-        (head x) : validSlides (tail x) t player
-    | otherwise = validSlides (tail x) t player
-        where startingPoint = filterSlideStartingTiles (head x) t player
-              endingPoint = filterSlideEndingTiles (head x) t player
+validSlides slides t player
+    | null slides = []
+    | ((fst (head slides)) `elem` startingPoint) &&
+      ((snd (head slides)) `elem` endingPoint) =
+        (head slides) : validSlides (tail slides) t player
+    | otherwise = validSlides (tail slides) t player
+        where startingPoint = filterSlideStartingTiles (head slides) t player
+              endingPoint = filterSlideEndingTiles (head slides) t player
 
--- All the points that have a player piece
+--
+-- filterSlideStartingTiles
+--
+-- This functions filters out all the valid starting points for a given slide
+-- in the current state of the board represtented as a list of tiles, which is
+-- all the points that have a player piece
+--
+-- Arguments:
+-- -- sld: the slide that is currently compared to in the current state
+-- -- t:  a State representing the most recent state
+-- -- player: W or B representing the player the program is
+--
+-- Returns: A list of all valid starting points for the slide
+--
+
 filterSlideStartingTiles :: Slide -> [Tile] -> Piece -> [Point]
-filterSlideStartingTiles x t player
+filterSlideStartingTiles sld t player
     | null t = []
-    | ((fst x) == (snd (head t))) && ((fst (head t)) == player) = (snd (head t)) : filterSlideStartingTiles x (tail t) player
-    | otherwise = filterSlideStartingTiles x (tail t) player
+    | ((fst sld) == (snd (head t))) && ((fst (head t)) == player) = (snd (head t)) : filterSlideStartingTiles sld (tail t) player
+    | otherwise = filterSlideStartingTiles sld (tail t) player
 
--- All the points that have a empty spot piece
+--
+-- filterSlideEndingTiles
+--
+-- This functions filters out all the valid ending points for a given slide
+-- in the current state of the board represtented as a list of tiles, which is
+-- all the points that have a empty spot piece
+--
+-- Arguments:
+-- -- sld: the slide that is currently compared to in the current state
+-- -- t:  a State representing the most recent state
+-- -- player: W or B representing the player the program is
+--
+-- Returns: A list of all valid ending points for the slide
+--
+
 filterSlideEndingTiles :: Slide -> [Tile] -> Piece -> [Point]
-filterSlideEndingTiles x t p
+filterSlideEndingTiles sld t player
     | null t = []
-    | ((snd x) == (snd (head t))) && (((fst (head t))) == D) = (snd (head t)) : filterSlideEndingTiles x (tail t) p
-    | otherwise = filterSlideEndingTiles x (tail t) p
+    | ((snd sld) == (snd (head t))) && (((fst (head t))) == D) = (snd (head t)) : filterSlideEndingTiles sld (tail t) player
+    | otherwise = filterSlideEndingTiles sld (tail t) player
 
 
 --
