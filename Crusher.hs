@@ -2,6 +2,7 @@ module Crusher where
 
 
 -- Andre Furlan Bueno - o3d9 - 45222130
+-- Rennie Haylock - p1a9 - 57117137
 
 -- CPSC 312 - Project 2
 -- by Khurram Ali Jaffery
