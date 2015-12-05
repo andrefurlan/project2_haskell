@@ -500,14 +500,14 @@ generateJumps grid n = createJumps grid n
 
 createJumps :: Grid -> Int -> [Slide]
 createJumps grid n =
-    let sensibleGrid = map (\ x -> ( fst x + ([0 | x <- [1..3]]++[1..(3-1)])!!(snd x), snd x )) grid
-    in filter (\ x -> (elem (snd x) grid))
-        ([(x,(((fst x) + 0),((snd x) + 2))) | x <- grid]++
-        [(x,(((fst x) + 2),((snd x) + 2))) | x <- grid]++
-        [(x,(((fst x) + 2),((snd x) + 0))) | x <- grid]++
-        [(x,(((fst x) - 2),((snd x) + 0))) | x <- grid]++
-        [(x,(((fst x) - 2),((snd x) - 2))) | x <- grid]++
-        [(x,(((fst x) + 0),((snd x) - 2))) | x <- grid])
+    let sensibleGrid = map (\ x -> ( fst x + ([0 | x <- [1..n]]++[1..(n-1)])!!(snd x), snd x )) grid
+    in filter (\ x -> (elem (snd x) sensibleGrid))
+        ([(x,(((fst x) + 0),((snd x) + 2))) | x <- sensibleGrid]++
+        [(x,(((fst x) + 2),((snd x) + 2))) | x <- sensibleGrid]++
+        [(x,(((fst x) + 2),((snd x) + 0))) | x <- sensibleGrid]++
+        [(x,(((fst x) - 2),((snd x) + 0))) | x <- sensibleGrid]++
+        [(x,(((fst x) - 2),((snd x) - 2))) | x <- sensibleGrid]++
+        [(x,(((fst x) + 0),((snd x) - 2))) | x <- sensibleGrid])
 
 
 generateLeaps :: Grid -> Int -> [Jump]
