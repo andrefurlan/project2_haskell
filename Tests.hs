@@ -107,6 +107,13 @@ test_genSlides3 = TestCase (
 filterSlides :: Point -> [Slide] -> [Point]
 filterSlides p slides = map  (snd)  (filter (\ x -> ((fst x) == p)) slides)
 
+filterJumps :: Point -> [Jump] -> [(Point,Point)]
+filterJumps p jumps =
+    let f (a,_,_) = a
+        st (_,b,c) = (b,c)
+    in map  (st)  (filter (\ x -> ((f x) == p)) jumps)
+
+
 test_genSlides2 = TestCase (
     assertEqual
         "List of all possible slides size 2"
