@@ -291,10 +291,7 @@ generateGrid n1 n2 n3 acc
 -- Returns: the list of all Slides possible on the given grid
 --
 generateSlides :: Grid -> Int -> [Slide]
-generateSlides grid n = createSlides grid n
-
-createSlides :: Grid -> Int -> [Slide]
-createSlides grid n = filter (\ x -> (elem (snd x) grid))
+generateSlides grid n = filter (\ x -> (elem (snd x) grid))
     ([(x,(((fst x) + 0),((snd x) + 1))) | x <- grid, (snd x) <  (n-1)]++
      [(x,(((fst x) + 1),((snd x) + 1))) | x <- grid, (snd x) <  (n-1)]++
      [(x,(((fst x) - 1),((snd x) + 1))) | x <- grid, (snd x) >= (n-1)]++
